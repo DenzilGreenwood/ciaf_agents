@@ -1,6 +1,6 @@
 # Architecture Details
 
-## System Overview
+## System Overview   
 
 The CIAF-LCM Agentic Execution Boundaries implementation provides a complete control stack for governing AI agent actions through five integrated planes.
 
