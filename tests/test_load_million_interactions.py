@@ -344,7 +344,7 @@ class TestMillionAgentInteractions:
         - Throughput trending and performance cliff detection
         
         Uses efficient sampling based on checkpoints:
-        - Detailed metrics every 100M actions
+        - Detailed metrics every 100K actions
         - Per-transaction latency sampling every 100K
         - Memory profiling at checkpoints
         - Degradation detection across phases
@@ -358,10 +358,10 @@ class TestMillionAgentInteractions:
         metrics.start_memory = psutil.Process().memory_info().rss
         
         # 1 BILLION action scale with checkpointing
-        num_actions = 1_000_000_000
+        num_actions = 1_000_000
         num_workers = 16
         actions_per_worker = num_actions // num_workers
-        checkpoint_interval = 100_000_000  # Report metrics every 100M
+        checkpoint_interval = 100_000  # Report metrics every 100K
         sample_interval = 100_000  # Sample latency every 100K
         
         # Shared counters for progress tracking

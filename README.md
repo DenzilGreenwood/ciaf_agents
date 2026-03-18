@@ -63,20 +63,20 @@ Agent Boundary = Identity + Authorization + Context + Elevation Control + Mediat
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Action Request                          │
+│                      Action Request                         │
 │  (Agent, Action, Resource, Parameters, Justification)       │
 └────────────────────┬────────────────────────────────────────┘
                      │
                      ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                    Identity Resolution                       │
+│                    Identity Resolution                      │
 │  • Authenticate agent principal                             │
 │  • Load roles and attributes                                │
 └────────────────────┬────────────────────────────────────────┘
                      │
                      ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                    Policy Evaluation                         │
+│                    Policy Evaluation                        │
 │  • Check standing IAM permissions                           │
 │  • Evaluate boundary conditions (ABAC)                      │
 │  • Determine if elevation required                          │
@@ -84,7 +84,7 @@ Agent Boundary = Identity + Authorization + Context + Elevation Control + Mediat
                      │
                      ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                  Privilege Verification                      │
+│                  Privilege Verification                     │
 │  • Find active elevation grant (if required)                │
 │  • Validate grant scope and expiry                          │
 │  • Check approver and ticket reference                      │
@@ -92,7 +92,7 @@ Agent Boundary = Identity + Authorization + Context + Elevation Control + Mediat
                      │
                      ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                   Mediated Execution                         │
+│                   Mediated Execution                        │
 │  • Invoke guarded tool wrapper                              │
 │  • Apply runtime controls                                   │
 │  • Capture execution result                                 │
@@ -100,7 +100,7 @@ Agent Boundary = Identity + Authorization + Context + Elevation Control + Mediat
                      │
                      ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                   Evidence Recording                         │
+│                   Evidence Recording                        │
 │  • Generate signed receipt                                  │
 │  • Chain to prior receipt                                   │
 │  • Store in tamper-evident vault                            │
@@ -289,8 +289,8 @@ denied = vault.get_denied_receipts()
 - [Implementation Guide](docs/implementation_guide.md) - Step-by-step walkthrough
 - **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation with examples
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute
-- [Changelog](../CHANGELOG.md) - Version history and changes
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
+- [Changelog](CHANGELOG.md) - Version history and changes
 
 ## Configuration
 
@@ -319,11 +319,11 @@ This project is licensed under the Business Source License 1.1 with eventual con
 
 - ✅ Use in development and testing environments
 - ✅ Use in non-production systems
-- ⚠️ Production use requires evaluation (see [LICENSE.md](../../LICENSE.md) for specifics)
+- ⚠️ Production use requires evaluation (see [LICENSE.md](LICENSE.md) for specifics)
 - 📜 Source code is available for inspection and modification
 - 🔄 License converts to Open Source after a specified period
 
-See [LICENSE.md](../../LICENSE.md) for complete details.
+See [LICENSE.md](LICENSE.md) for complete details.
 
 ---
 
