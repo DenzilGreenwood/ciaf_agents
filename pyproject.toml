@@ -37,6 +37,7 @@ dev = [
   "flake8>=6.0.0",
   "isort>=5.12.0",
   "mypy>=1.0.0",
+  "psutil>=5.9.0",
 ]
 yaml = ["pyyaml>=6.0"]
 aws = ["boto3>=1.26.0"]
