@@ -1,0 +1,201 @@
+# Sensitive Actions Configuration
+#
+# Actions defined here always require PAM elevation, regardless of IAM permissions.
+
+sensitive_actions:
+  # Financial Operations
+  - action: approve_payment
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 15
+    justification_required: true
+    dual_approval_above_threshold: 10000
+    
+  - action: initiate_wire_transfer
+    risk_level: critical
+    require_elevation: true
+    require_approval: true
+    require_dual_approval: true
+    max_grant_duration_minutes: 10
+    justification_required: true
+    
+  - action: refund_payment
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 30
+    justification_required: true
+
+  # Data Operations
+  - action: export_patient_data
+    risk_level: critical
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 30
+    justification_required: true
+    post_export_review: true
+    
+  - action: export_data
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 30
+    justification_required: true
+    
+  - action: delete_record
+    risk_level: critical
+    require_elevation: true
+    require_approval: true
+    require_dual_approval: true
+    max_grant_duration_minutes: 5
+    justification_required: true
+    
+  - action: modify_audit_log
+    risk_level: critical
+    require_elevation: true
+    require_approval: true
+    require_dual_approval: true
+    max_grant_duration_minutes: 5
+    justification_required: true
+    permanently_log: true
+
+  # Infrastructure Operations
+  - action: modify_prod_config
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 60
+    require_change_ticket: true
+    justification_required: true
+    
+  - action: restart_service
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 30
+    require_change_ticket: true
+    justification_required: true
+    
+  - action: deploy_code
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 120
+    require_change_ticket: true
+    justification_required: true
+    
+  - action: modify_firewall_rule
+    risk_level: critical
+    require_elevation: true
+    require_approval: true
+    require_dual_approval: true
+    max_grant_duration_minutes: 15
+    require_change_ticket: true
+    justification_required: true
+    
+  - action: grant_privilege
+    risk_level: critical
+    require_elevation: true
+    require_approval: true
+    require_dual_approval: true
+    max_grant_duration_minutes: 5
+    justification_required: true
+
+  # Communication Operations
+  - action: send_external_email
+    risk_level: medium
+    require_elevation: true
+    require_approval: false  # Handled by allowlist
+    max_grant_duration_minutes: 60
+    justification_required: true
+    domain_allowlist_required: true
+    
+  - action: send_mass_notification
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 30
+    justification_required: true
+    recipient_limit_enforcement: true
+    
+  - action: post_public_announcement
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    require_dual_approval: true
+    max_grant_duration_minutes: 15
+    justification_required: true
+
+  # Identity Operations
+  - action: create_identity
+    risk_level: medium
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 30
+    justification_required: true
+    
+  - action: modify_roles
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    max_grant_duration_minutes: 15
+    justification_required: true
+    
+  - action: revoke_identity
+    risk_level: high
+    require_elevation: true
+    require_approval: true
+    require_dual_approval: true
+    max_grant_duration_minutes: 5
+    justification_required: true
+
+# Action Categories
+action_categories:
+  financial:
+    - approve_payment
+    - initiate_wire_transfer
+    - refund_payment
+    
+  data_export:
+    - export_patient_data
+    - export_data
+    
+  destructive:
+    - delete_record
+    - modify_audit_log
+    - revoke_identity
+    
+  infrastructure:
+    - modify_prod_config
+    - restart_service
+    - deploy_code
+    - modify_firewall_rule
+    
+  communication:
+    - send_external_email
+    - send_mass_notification
+    - post_public_announcement
+    
+  identity:
+    - create_identity
+    - modify_roles
+    - grant_privilege
+    - revoke_identity
+
+# Risk Level Defaults
+risk_level_defaults:
+  critical:
+    require_dual_approval: true
+    max_grant_duration_minutes: 15
+    heightened_logging: true
+    
+  high:
+    require_approval: true
+    max_grant_duration_minutes: 30
+    heightened_logging: true
+    
+  medium:
+    require_approval: false
+    max_grant_duration_minutes: 60
+    heightened_logging: false

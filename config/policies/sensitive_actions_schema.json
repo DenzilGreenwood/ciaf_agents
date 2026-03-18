@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CIAF-LCM Sensitive Actions Configuration Schema",
+  "description": "Schema for CIAF-LCM sensitive actions that require PAM elevation",
+  "type": "object",
+  "properties": {
+    "sensitive_actions": {
+      "type": "array",
+      "description": "List of sensitive actions requiring PAM elevation",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Action name"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"],
+            "description": "Risk level classification"
+          },
+          "require_elevation": {
+            "type": "boolean",
+            "description": "Requires PAM elevation"
+          },
+          "require_approval": {
+            "type": "boolean",
+            "description": "Requires approval"
+          },
+          "require_dual_approval": {
+            "type": "boolean",
+            "description": "Requires dual approval"
+          },
+          "max_grant_duration_minutes": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum duration in minutes"
+          },
+          "justification_required": {
+            "type": "boolean",
+            "description": "Justification must be provided"
+          },
+          "require_change_ticket": {
+            "type": "boolean",
+            "description": "Requires change management ticket"
+          },
+          "post_export_review": {
+            "type": "boolean",
+            "description": "Requires post-export review"
+          },
+          "permanently_log": {
+            "type": "boolean",
+            "description": "Always log this action"
+          },
+          "domain_allowlist_required": {
+            "type": "boolean",
+            "description": "Domain allowlist is required"
+          },
+          "recipient_limit_enforcement": {
+            "type": "boolean",
+            "description": "Enforce recipient limits"
+          },
+          "dual_approval_above_threshold": {
+            "type": "number",
+            "description": "Threshold above which dual approval is required"
+          },
+          "heightened_logging": {
+            "type": "boolean",
+            "description": "Requires heightened logging"
+          }
+        },
+        "required": ["action", "risk_level", "require_elevation"],
+        "additionalProperties": false
+      }
+    },
+    "action_categories": {
+      "type": "object",
+      "description": "Grouping of actions by category",
+      "properties": {
+        "financial": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "data_export": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "destructive": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "infrastructure": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "communication": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "identity": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+    "risk_level_defaults": {
+      "type": "object",
+      "description": "Default settings for each risk level",
+      "properties": {
+        "critical": {
+          "type": "object",
+          "properties": {
+            "require_dual_approval": { "type": "boolean" },
+            "max_grant_duration_minutes": { "type": "integer", "minimum": 1 },
+            "heightened_logging": { "type": "boolean" }
+          }
+        },
+        "high": {
+          "type": "object",
+          "properties": {
+            "require_approval": { "type": "boolean" },
+            "max_grant_duration_minutes": { "type": "integer", "minimum": 1 },
+            "heightened_logging": { "type": "boolean" }
+          }
+        },
+        "medium": {
+          "type": "object",
+          "properties": {
+            "require_approval": { "type": "boolean" },
+            "max_grant_duration_minutes": { "type": "integer", "minimum": 1 },
+            "heightened_logging": { "type": "boolean" }
+          }
+        },
+        "low": {
+          "type": "object",
+          "properties": {
+            "require_approval": { "type": "boolean" },
+            "max_grant_duration_minutes": { "type": "integer", "minimum": 1 },
+            "heightened_logging": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  },
+  "required": ["sensitive_actions"],
+  "additionalProperties": false
+}

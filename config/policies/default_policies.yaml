@@ -1,0 +1,126 @@
+# Default Policy Definitions
+
+## Tenant Isolation Policy
+tenant_isolation:
+  enabled: true
+  description: "Prevent cross-tenant data access"
+  enforcement: hard  # hard (deny), soft (warn), audit (log only)
+  exceptions: []
+
+## Department Isolation Policy
+department_isolation:
+  enabled: false
+  description: "Prevent cross-department access"
+  enforcement: soft
+  exceptions:
+    - action: read_metrics
+      reason: "Monitoring agents need cross-department visibility"
+
+## Environment Access Policy
+environment_access:
+  production:
+    require_production_role: true
+    deny_non_production_identities: true
+  
+  staging:
+    allow_production_identities: true
+  
+  development:
+    allow_all: true
+
+## Data Classification Policy
+data_classification:
+  enabled: true
+  levels:
+    public:
+      clearance_required: 0
+    internal:
+      clearance_required: 1
+    confidential:
+      clearance_required: 2
+    restricted:
+      clearance_required: 3
+      require_elevation: true
+    highly_restricted:
+      clearance_required: 4
+      require_elevation: true
+      require_dual_approval: true
+
+## Business Hours Policy
+business_hours:
+  enabled: false
+  timezone: "America/New_York"
+  allowed_hours:
+    start: 9
+    end: 17
+  allowed_days:
+    - monday
+    - tuesday
+    - wednesday
+    - thursday
+    - friday
+  after_hours_actions_require_elevation: true
+  exceptions:
+    - action: read_metrics
+    - action: read_logs
+    - principal_type: monitoring_agent
+
+## Payment Threshold Policy
+payment_thresholds:
+  enabled: true
+  currency: USD
+  thresholds:
+    - amount: 10000
+      require_elevation: true
+      reason: "Payment above standard approval limit"
+    - amount: 50000
+      require_dual_approval: true
+      reason: "High-value payment requires dual control"
+    - amount: 100000
+      require_executive_approval: true
+      reason: "Executive approval required for payments over $100K"
+
+## Email Domain Policy
+email_domains:
+  enabled: true
+  external_email_requires_allowlist: true
+  default_allowed_patterns:
+    - "*@example.com"
+  require_elevation_for_unapproved_domains: true
+
+## Rate Limiting Policy
+rate_limiting:
+  enabled: true
+  per_principal:
+    requests_per_minute: 60
+    burst: 10
+  per_action:
+    sensitive_actions_per_hour: 10
+
+## Change Management Policy
+change_management:
+  enabled: true
+  require_ticket_for_production_changes: true
+  require_ticket_for_sensitive_actions: false
+  ticket_validation:
+    enabled: false
+    endpoint: ""
+  allowed_ticket_prefixes:
+    - CHG-
+    - INC-
+    - TASK-
+
+## Audit and Compliance Policy
+audit:
+  record_all_decisions: true
+  record_denials: true
+  record_dry_runs: false
+  
+  high_value_actions:
+    - approve_payment
+    - export_patient_data
+    - modify_prod_config
+    - delete_record
+  
+  require_justification_for_high_value: true
+  minimum_justification_length: 20

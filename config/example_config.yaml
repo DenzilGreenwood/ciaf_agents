@@ -1,0 +1,152 @@
+# CIAF-LCM Agentic Execution Boundaries Configuration
+
+## System Settings
+environment: development  # development, staging, production
+
+## Identity and Access Management (IAM)
+iam:
+  # Identity provider settings
+  identity_provider: local  # local, oauth2, saml, oidc
+  credential_rotation_days: 90
+  
+  # Role management
+  allow_dynamic_roles: false
+  default_role: agent_readonly
+  
+  # Caching
+  identity_cache_ttl_seconds: 300
+  role_cache_ttl_seconds: 600
+
+## Privileged Access Management (PAM)
+pam:
+  # Grant duration defaults
+  default_grant_duration_minutes: 15
+  max_grant_duration_minutes: 120
+  min_grant_duration_minutes: 5
+  
+  # Approval requirements
+  require_approval: true
+  require_dual_approval_above_threshold: true
+  dual_approval_threshold_actions:
+    - approve_payment
+    - export_patient_data
+  
+  # Grant extension
+  allow_grant_extension: true
+  require_approval_for_extensions: true
+  max_extensions_per_grant: 2
+  
+  # Cleanup
+  expired_grant_cleanup_interval_minutes: 60
+
+## Policy Engine
+policy:
+  # Default posture
+  default_deny: true
+  
+  # Caching
+  policy_cache_enabled: true
+  cache_ttl_seconds: 300
+  
+  # Sensitive actions (require PAM elevation)
+  sensitive_actions:
+    - approve_payment
+    - delete_record
+    - export_patient_data
+    - export_data
+    - send_external_email
+    - modify_prod_config
+    - restart_service
+    - deploy_code
+    - modify_firewall_rule
+  
+  # Boundary policies
+  enforce_tenant_isolation: true
+  enforce_department_isolation: false
+  allow_cross_environment_access: false
+
+## Evidence Vault
+evidence:
+  # Cryptographic settings
+  signing_algorithm: hmac-sha256
+  key_rotation_enabled: true
+  key_rotation_days: 90
+  
+  # Storage backend
+  storage_backend: local  # local, s3, azure_blob, gcs
+  storage_config:
+    path: ./evidence_data
+  
+  # Retention
+  retention_enabled: true
+  retention_days: 2555  # 7 years for compliance
+  
+  # Chain verification
+  verify_chain_on_append: false  # Set true for high-assurance mode
+  periodic_verification_enabled: true
+  verification_interval_hours: 24
+  
+  # Export settings
+  export_format: jsonl  # json, jsonl, csv
+  compress_exports: true
+
+## Execution Layer
+execution:
+  # Tool registry
+  require_tool_registration: true
+  allow_dynamic_tools: false
+  
+  # Execution controls
+  default_timeout_seconds: 30
+  max_timeout_seconds: 300
+  
+  # Mediation
+  schema_validation_enabled: true
+  output_filtering_enabled: true
+  
+  # Dry run mode
+  dry_run_mode: false
+
+## Monitoring and Alerting
+monitoring:
+  # SIEM integration
+  siem_export_enabled: false
+  siem_endpoint: ""
+  siem_batch_size: 100
+  siem_export_interval_seconds: 60
+  
+  # Metrics
+  metrics_enabled: true
+  metrics_endpoint: ""
+  metrics_push_interval_seconds: 30
+  
+  # Alerting
+  alert_on_excessive_denials: true
+  denial_threshold_per_hour: 10
+  
+  alert_on_elevation_failures: true
+  alert_on_chain_verification_failure: true
+
+## Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR
+  format: json  # text, json
+  output: stdout  # stdout, file, both
+  file_path: ./logs/ciaf-lmc.log
+  
+  # Log content
+  log_receipts: true
+  log_denials: true
+  log_policy_decisions: true
+  log_grant_lifecycle: true
+
+## Development Settings (only apply when environment=development)
+development:
+  # Less strict requirements for demos
+  allow_insecure_secrets: true
+  skip_approval_workflow: false
+  reduced_grant_requirements: false
+  
+  # Debug features
+  enable_debug_endpoints: false
+  verbose_logging: true

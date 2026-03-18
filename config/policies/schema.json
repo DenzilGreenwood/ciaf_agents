@@ -1,0 +1,244 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CIAF-LCM Policy Configuration Schema",
+  "description": "Schema for CIAF-LCM Agentic Execution Boundaries policy definitions",
+  "type": "object",
+  "properties": {
+    "tenant_isolation": {
+      "type": "object",
+      "description": "Prevents cross-tenant data access",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "description": { "type": "string" },
+        "enforcement": {
+          "type": "string",
+          "enum": ["hard", "soft", "audit"],
+          "description": "hard (deny), soft (warn), audit (log only)"
+        },
+        "exceptions": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      },
+      "required": ["enabled", "description", "enforcement"]
+    },
+    "department_isolation": {
+      "type": "object",
+      "description": "Prevents cross-department access",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "description": { "type": "string" },
+        "enforcement": {
+          "type": "string",
+          "enum": ["hard", "soft", "audit"]
+        },
+        "exceptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["enabled", "description", "enforcement"]
+    },
+    "environment_access": {
+      "type": "object",
+      "description": "Controls access based on environment (production, staging, development)",
+      "properties": {
+        "production": {
+          "type": "object",
+          "properties": {
+            "require_production_role": { "type": "boolean" },
+            "deny_non_production_identities": { "type": "boolean" }
+          }
+        },
+        "staging": {
+          "type": "object",
+          "properties": {
+            "allow_production_identities": { "type": "boolean" }
+          }
+        },
+        "development": {
+          "type": "object",
+          "properties": {
+            "allow_all": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "data_classification": {
+      "type": "object",
+      "description": "Data classification levels with associated clearance requirements",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "levels": {
+          "type": "object",
+          "properties": {
+            "public": {
+              "type": "object",
+              "properties": {
+                "clearance_required": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "internal": {
+              "type": "object",
+              "properties": {
+                "clearance_required": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "confidential": {
+              "type": "object",
+              "properties": {
+                "clearance_required": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "restricted": {
+              "type": "object",
+              "properties": {
+                "clearance_required": { "type": "integer", "minimum": 0 },
+                "require_elevation": { "type": "boolean" }
+              }
+            },
+            "highly_restricted": {
+              "type": "object",
+              "properties": {
+                "clearance_required": { "type": "integer", "minimum": 0 },
+                "require_elevation": { "type": "boolean" },
+                "require_dual_approval": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "required": ["enabled", "levels"]
+    },
+    "business_hours": {
+      "type": "object",
+      "description": "Business hours policy for access restrictions",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "timezone": { "type": "string" },
+        "allowed_hours": {
+          "type": "object",
+          "properties": {
+            "start": { "type": "integer", "minimum": 0, "maximum": 23 },
+            "end": { "type": "integer", "minimum": 0, "maximum": 23 }
+          },
+          "required": ["start", "end"]
+        },
+        "allowed_days": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+          }
+        },
+        "after_hours_actions_require_elevation": { "type": "boolean" },
+        "exceptions": { "type": "array" }
+      },
+      "required": ["enabled", "timezone", "allowed_hours", "allowed_days"]
+    },
+    "payment_thresholds": {
+      "type": "object",
+      "description": "Payment amount thresholds requiring escalated approvals",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "currency": { "type": "string" },
+        "thresholds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "amount": { "type": "number", "minimum": 0 },
+              "require_elevation": { "type": "boolean" },
+              "require_dual_approval": { "type": "boolean" },
+              "require_executive_approval": { "type": "boolean" },
+              "reason": { "type": "string" }
+            },
+            "required": ["amount"]
+          }
+        }
+      },
+      "required": ["enabled", "currency", "thresholds"]
+    },
+    "email_domains": {
+      "type": "object",
+      "description": "Email domain allowlist policy",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "external_email_requires_allowlist": { "type": "boolean" },
+        "default_allowed_patterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "require_elevation_for_unapproved_domains": { "type": "boolean" }
+      },
+      "required": ["enabled", "external_email_requires_allowlist", "default_allowed_patterns"]
+    },
+    "rate_limiting": {
+      "type": "object",
+      "description": "Rate limiting policy",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "per_principal": {
+          "type": "object",
+          "properties": {
+            "requests_per_minute": { "type": "integer", "minimum": 1 },
+            "burst": { "type": "integer", "minimum": 0 }
+          },
+          "required": ["requests_per_minute"]
+        },
+        "per_action": {
+          "type": "object",
+          "properties": {
+            "sensitive_actions_per_hour": { "type": "integer", "minimum": 1 }
+          }
+        }
+      },
+      "required": ["enabled", "per_principal"]
+    },
+    "change_management": {
+      "type": "object",
+      "description": "Change management and ticket validation policy",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "require_ticket_for_production_changes": { "type": "boolean" },
+        "require_ticket_for_sensitive_actions": { "type": "boolean" },
+        "ticket_validation": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "endpoint": { "type": "string" }
+          },
+          "required": ["enabled"]
+        },
+        "allowed_ticket_prefixes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["enabled", "require_ticket_for_production_changes", "ticket_validation"]
+    },
+    "audit": {
+      "type": "object",
+      "description": "Audit and compliance logging policy",
+      "properties": {
+        "record_all_decisions": { "type": "boolean" },
+        "record_denials": { "type": "boolean" },
+        "record_dry_runs": { "type": "boolean" },
+        "high_value_actions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "require_justification_for_high_value": { "type": "boolean" },
+        "minimum_justification_length": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["record_all_decisions", "record_denials"]
+    }
+  },
+  "additionalProperties": false
+}

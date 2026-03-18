@@ -1,0 +1,330 @@
+# Agentic Execution Boundaries
+
+[![PyPI Version](https://img.shields.io/pypi/v/ciaf_agents.svg)](https://pypi.org/project/ciaf_agents/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/)
+[![Tests](https://github.com/DenzilGreenwood/ciaf_agents/actions/workflows/workflow.yml/badge.svg)](https://github.com/DenzilGreenwood/ciaf_agents/actions)
+[![License: BUSL-1.1](https://img.shields.io/badge/license-BUSL--1.1-informational.svg)](LICENSE.md)
+
+## The Problem
+
+Current AI agents operate with **over-privileged "God-mode" access**, performing actions without verification, approval, or audit trails. This creates catastrophic risk in production systems: unauthorized data exfiltration, destructive operations, and zero accountability.
+
+## The Solution
+
+**CIAF-LCM Agentic Execution Boundaries** provides a **zero-trust framework** ensuring agents only execute authorized actions with verifiable cryptographic proof. Every action is authenticated, authorized, mediated, and audited—with **tamper-evident evidence chains** proving what happened and who approved it.
+
+## Overview
+
+This module implements identity and access management (IAM) and privileged access management (PAM) controls for autonomous AI agents, aligned with CIAF-LCM (Cognitive Insight Audit Framework - Lazy Capsule Materialization) principles.
+
+## Core Concepts
+
+### Execution Boundaries
+
+An **agentic execution boundary** defines the complete control envelope for an AI agent:
+
+```
+Agent Boundary = Identity + Authorization + Context + Elevation Control + Mediation + Auditability
+```
+
+### Control Planes
+
+1. **Identity Plane** - Who is the agent?
+   - Unique principal IDs
+   - Workload credentials
+   - Role assignments
+   - Tenant and environment binding
+
+2. **Policy Plane** - What can the agent do?
+   - Role-based access control (RBAC)
+   - Attribute-based access control (ABAC)
+   - Contextual conditions
+   - Resource scoping
+
+3. **Privilege Plane** - When can the agent elevate?
+   - Just-in-time (JIT) privilege grants
+   - Time-bound elevation
+   - Approval workflows
+   - Purpose binding
+
+4. **Execution Plane** - How are actions mediated?
+   - Tool wrappers
+   - Schema validation
+   - Interruptibility controls
+   - Output filtering
+
+5. **Evidence Plane** - How is it proven?
+   - Cryptographic receipts
+   - Chain-of-custody
+   - Tamper detection
+   - Audit trail preservation
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Action Request                          │
+│  (Agent, Action, Resource, Parameters, Justification)       │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    Identity Resolution                       │
+│  • Authenticate agent principal                             │
+│  • Load roles and attributes                                │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    Policy Evaluation                         │
+│  • Check standing IAM permissions                           │
+│  • Evaluate boundary conditions (ABAC)                      │
+│  • Determine if elevation required                          │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│                  Privilege Verification                      │
+│  • Find active elevation grant (if required)                │
+│  • Validate grant scope and expiry                          │
+│  • Check approver and ticket reference                      │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│                   Mediated Execution                         │
+│  • Invoke guarded tool wrapper                              │
+│  • Apply runtime controls                                   │
+│  • Capture execution result                                 │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│                   Evidence Recording                         │
+│  • Generate signed receipt                                  │
+│  • Chain to prior receipt                                   │
+│  • Store in tamper-evident vault                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Installation
+
+```bash
+# Navigate to the ciaf_agents directory
+cd ciaf_agents
+
+# Install the package in editable mode
+pip install -e .
+
+# Or install with development dependencies
+pip install -e ".[dev]"
+```
+
+## Quick Start
+
+### Basic IAM Setup
+
+Here's how to initialize a simple identity and access management system:
+
+```python
+from ciaf_agents.core import Identity, Permission, RoleDefinition
+from ciaf_agents.iam import IAMStore
+from ciaf_agents.policy import same_tenant_only
+
+# Create the IAM store
+iam = IAMStore()
+
+# Define a role with specific permissions
+analyst_role = RoleDefinition(
+    name="data_analyst",
+    permissions=[
+        Permission("read_record", "patient_record", same_tenant_only),
+        Permission("export_report", "report", same_tenant_only),
+    ]
+)
+iam.add_role(analyst_role)
+
+# Create an agent identity with that role
+agent = Identity(
+    principal_id="agent-claims-001",
+    principal_type="agent",
+    display_name="Claims Analysis Agent",
+    roles={"data_analyst"},
+    attributes={"tenant": "acme-health"}
+)
+iam.add_identity(agent)
+```
+
+### Full Execution with Evidence
+
+For complete control with identity, permissions, elevation, and cryptographic audit:
+
+```python
+from ciaf_agents.core import Identity, Resource, ActionRequest, Permission, RoleDefinition
+from ciaf_agents.iam import IAMStore
+from ciaf_agents.pam import PAMStore
+from ciaf_agents.policy import PolicyEngine, same_tenant_only
+from ciaf_agents.evidence import EvidenceVault
+from ciaf_agents.execution import ToolExecutor
+
+# Initialize all components
+iam = IAMStore()
+pam = PAMStore()
+vault = EvidenceVault(signing_secret="your-secret-key-here")
+policy = PolicyEngine(iam, pam, sensitive_actions={"approve_payment"})
+executor = ToolExecutor(policy, vault, pam)
+
+# Setup role and identity
+payment_agent = Identity(
+    principal_id="agent-payment-001",
+    principal_type="agent",
+    display_name="Payment Approval Agent",
+    roles={"payment_approver"},
+    attributes={"tenant": "acme-health"}
+)
+iam.add_identity(payment_agent)
+
+# Create an action request
+payment_request = ActionRequest(
+    action="approve_payment",
+    resource=Resource(
+        resource_id="payment-123",
+        resource_type="payment",
+        owner_tenant="acme-health",
+        attributes={"amount": 50000}
+    ),
+    params={"amount": 50000},
+    justification="Approve vendor invoice INV-2024-001",
+    requested_by=payment_agent
+)
+
+# Execute with full IAM/PAM/Evidence controls
+result = executor.execute(payment_request)
+print(f"Action allowed: {result.allowed}")
+print(f"Reason: {result.reason}")
+
+# Verify the complete cryptographic evidence chain
+is_valid = vault.verify_chain()
+print(f"Evidence chain valid: {is_valid}")
+```
+
+### Run Complete Scenarios
+
+For healthcare claims, financial payments, and infrastructure scenarios:
+
+```bash
+python examples/scenarios/healthcare_claims.py
+python examples/scenarios/financial_approvals.py
+python examples/scenarios/production_changes.py
+```
+
+## Module Structure
+
+```
+src/
+├── core/           # Core types (Identity, Resource, Request, Receipt)
+├── iam/            # Identity and access management
+├── pam/            # Privileged access management
+├── policy/         # Policy evaluation engine
+├── evidence/       # Evidence vault and receipt chain
+├── execution/      # Tool executor with mediation
+└── utils/          # Cryptographic and helper utilities
+```
+
+## Examples
+
+See the [examples/](examples/) directory for complete scenarios:
+
+- [Healthcare Claims Processing](examples/scenarios/healthcare_claims.py)
+- [Financial Payment Approvals](examples/scenarios/financial_approvals.py)
+- [Production Infrastructure Changes](examples/scenarios/production_changes.py)
+
+## Cryptographic Evidence & Receipts
+
+Every action generates a **tamper-evident receipt** with complete chain-of-custody. Receipts are cryptographically signed and chained to prove what happened and prevent unauthorized modification.
+
+**Example Receipt (JSON):**
+
+```json
+{
+  "receipt_id": "rcpt-2024-001-abc123",
+  "timestamp": "2024-03-18T14:32:45.123Z",
+  "principal_id": "agent-payment-001",
+  "principal_type": "agent",
+  "action": "approve_payment",
+  "resource_id": "payment-123",
+  "resource_type": "payment",
+  "correlation_id": "corr-2024-001",
+  "decision": true,
+  "reason": "Allowed by IAM and runtime boundary policy",
+  "elevation_grant_id": "grant-2024-xyz789",
+  "approved_by": "manager-hr-001",
+  "params_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "policy_obligations": ["two_person_review", "heightened_logging"],
+  "prior_receipt_hash": "sha256:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+  "signature": "hmac-sha256:8d74e34d2c5b6f8a9e1c3d5f7b2a4c6e8f0a1b3d5f7a9b1c3e5d7f9a1b3c5"
+}
+```
+
+**Verify receipts programmatically:**
+
+```python
+# Check a single receipt
+is_valid = vault.verify_receipt(receipt)
+
+# Verify entire chain (detects tampering)
+chain_valid = vault.verify_chain()
+
+# Get all receipts for an agent
+receipts = vault.get_receipts_by_principal("agent-payment-001")
+
+# Get denied actions
+denied = vault.get_denied_receipts()
+```
+
+## Documentation
+
+- [Whitepaper: Agentic Execution Boundaries](docs/whitepaper_agentic_execution_boundaries.md) - Theory and concepts
+- [Architecture Details](docs/architecture.md) - Technical design
+- [Implementation Guide](docs/implementation_guide.md) - Step-by-step walkthrough
+- **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation with examples
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute
+- [Changelog](../CHANGELOG.md) - Version history and changes
+
+## Configuration
+
+Configuration files are in [config/](config/):
+
+- `example_config.yaml` - System configuration template
+- `policies/default_policies.yaml` - Default policy rules (tenant isolation, data classification, payment thresholds, etc.)
+- `policies/sensitive_actions.yaml` - High-risk action definitions (financial operations, infrastructure changes, data exports)
+- `policies/schema.json` - JSON Schema for policy validation
+
+## Security Considerations
+
+1. **Credential Management**: Never hardcode signing secrets or credentials. Use environment variables or secure vaults.
+2. **Grant Expiry**: Always set reasonable expiration times for elevation grants (15-120 minutes recommended).
+3. **Receipt Storage**: Store receipts in WORM (write-once-read-many) or immutable storage to prevent tampering.
+4. **Chain Verification**: Regularly verify receipt chain integrity to detect any modifications or gaps.
+5. **Audit Review**: Implement automated detection of anomalous patterns in authorization decisions.
+
+## License
+
+**Business Source License 1.1 (BUSL-1.1)**
+
+This project is licensed under the Business Source License 1.1 with eventual conversion to an Open Source license. 
+
+**What this means:**
+
+- ✅ Use in development and testing environments
+- ✅ Use in non-production systems
+- ⚠️ Production use requires evaluation (see [LICENSE.md](../../LICENSE.md) for specifics)
+- 📜 Source code is available for inspection and modification
+- 🔄 License converts to Open Source after a specified period
+
+See [LICENSE.md](../../LICENSE.md) for complete details.
+
+---
+
+**Questions?** Open an issue on [GitHub](https://github.com/DenzilGreenwood/ciaf_agents) or review the [Troubleshooting Guide](docs/TROUBLESHOOTING.md).
