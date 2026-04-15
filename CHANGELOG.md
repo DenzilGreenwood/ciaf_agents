@@ -8,8 +8,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial release preparation
-- Complete documentation suite
+- Future enhancements and improvements
+
+## [1.1.0] - 2026-04-15
+
+### Added
+
+**Web Search Workflow Agent**
+- New 6th workflow agent demonstrating CIAF governance in information retrieval domain
+- Internet search with content governance and policy enforcement
+- Search categories: PUBLIC, GENERAL, ACADEMIC, RESTRICTED, SENSITIVE
+- All 5 CIAF control planes demonstrated (Identity, Policy, Privilege, Execution, Evidence)
+- Safe search filtering and adult content blocking
+- Escalation routing for restricted/sensitive searches
+- Cryptographically signed search audit trail
+- Tool function: `search_the_web_tool` with LLM integration
+
+**ADK Agent Discovery & Integration**
+- Fixed agent discovery issues in ADK web UI
+- Created proper `workflows/agent.py` with Router Agent pattern
+- Router agent guides users between all 6 workflows
+- Added App pattern with ContextFilterPlugin for session management
+- Proper `__init__.py` structure for ADK compliance
+- Added `.env` file to workflows folder for API credentials
+
+**Workflow Agent Improvements**
+- All 6 workflows now fully ADK-discoverable and loadable
+- Workflows folder now exports 7 agents (6 workflows + 1 router)
+- Each workflow verified with proper `root_agent` export
+- Healthcare and Financial Approvals workflows tested and verified working
+- Complete integration with `adk web`, `adk run`, `adk api_server` commands
+
+**Documentation Updates**
+- Updated workflows/README.md with complete ADK integration guide
+- Added Web Search workflow documentation with tool signatures and examples
+- Added integration section showing how to use agents with ADK CLI and programmatically
+- Updated __init__.py files to match ADK discovery patterns
+
+### Fixed
+- Agent discovery in ADK web UI (proper folder structure)
+- Method naming bug in financial_approvals workflow (process_payment → approve_payment)
+- Missing `.env` file in workflows folder
+
+### Verified
+- Healthcare Claims Agent: All 5 control planes working, 4 claims processed correctly
+- Financial Approvals Agent: Multi-tier approval chains, 3 payments routed correctly
+- Web Search Agent: 5 search queries with proper escalation and categorization
+- ADK web UI discovery: Both `my_agent/` and `workflows/` folders properly discoverable
+
+### Technical Details
+- 6 complete workflow agents across different domains
+- 7 total agents (6 workflows + 1 router)
+- ~450 lines of code for Web Search workflow
+- Full CIAF governance with all 5 control planes
+- Dual-license compliance (BUSL-1.1 for CIAF logic + Apache 2.0 for ADK framework)
+- 2,500+ lines of governance logic across all workflows
+
+### Breaking Changes
+None - This is a backward-compatible minor version release.
+
+### Migration Steps
+1. Update to version 1.1.0
+2. Run `adk web` from ciaf_agents root directory to discover both agent folders
+3. New Web Search workflow available in workflows folder
+4. All existing workflows continue to work as before
 
 ## [1.0.0] - 2026-03-18
 
