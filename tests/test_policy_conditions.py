@@ -21,16 +21,16 @@ def test_any_condition_always_true():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={}
+        attributes={},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="document",
         owner_tenant="tenant-a",
-        attributes={}
+        attributes={},
     )
-    
+
     assert any_condition(identity, resource, {}) == True
 
 
@@ -41,16 +41,16 @@ def test_same_tenant_only_matching():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={"tenant": "tenant-a"}
+        attributes={"tenant": "tenant-a"},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="document",
         owner_tenant="tenant-a",
-        attributes={}
+        attributes={},
     )
-    
+
     assert same_tenant_only(identity, resource, {}) == True
 
 
@@ -61,16 +61,16 @@ def test_same_tenant_only_not_matching():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={"tenant": "tenant-a"}
+        attributes={"tenant": "tenant-a"},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="document",
         owner_tenant="tenant-b",
-        attributes={}
+        attributes={},
     )
-    
+
     assert same_tenant_only(identity, resource, {}) == False
 
 
@@ -81,16 +81,16 @@ def test_same_tenant_only_missing_tenant():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={}
+        attributes={},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="document",
         owner_tenant="tenant-a",
-        attributes={}
+        attributes={},
     )
-    
+
     assert same_tenant_only(identity, resource, {}) == False
 
 
@@ -101,16 +101,16 @@ def test_same_department_only_matching():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={"department": "engineering"}
+        attributes={"department": "engineering"},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="document",
         owner_tenant="tenant-a",
-        attributes={"department": "engineering"}
+        attributes={"department": "engineering"},
     )
-    
+
     assert same_department_only(identity, resource, {}) == True
 
 
@@ -121,16 +121,16 @@ def test_same_department_only_not_matching():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={"department": "engineering"}
+        attributes={"department": "engineering"},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="document",
         owner_tenant="tenant-a",
-        attributes={"department": "finance"}
+        attributes={"department": "finance"},
     )
-    
+
     assert same_department_only(identity, resource, {}) == False
 
 
@@ -141,16 +141,16 @@ def test_production_environment_only_true():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={"environment": "production"}
+        attributes={"environment": "production"},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="server",
         owner_tenant="tenant-a",
-        attributes={}
+        attributes={},
     )
-    
+
     assert production_environment_only(identity, resource, {}) == True
 
 
@@ -161,16 +161,16 @@ def test_production_environment_only_false():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={"environment": "staging"}
+        attributes={"environment": "staging"},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="server",
         owner_tenant="tenant-a",
-        attributes={}
+        attributes={},
     )
-    
+
     assert production_environment_only(identity, resource, {}) == False
 
 
@@ -181,16 +181,16 @@ def test_non_production_only_true():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={"environment": "staging"}
+        attributes={"environment": "staging"},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="server",
         owner_tenant="tenant-a",
-        attributes={}
+        attributes={},
     )
-    
+
     assert non_production_only(identity, resource, {}) == True
 
 
@@ -201,16 +201,16 @@ def test_non_production_only_false():
         principal_type="agent",
         display_name="Test",
         roles=set(),
-        attributes={"environment": "production"}
+        attributes={"environment": "production"},
     )
-    
+
     resource = Resource(
         resource_id="res-1",
         resource_type="server",
         owner_tenant="tenant-a",
-        attributes={}
+        attributes={},
     )
-    
+
     assert non_production_only(identity, resource, {}) == False
 
 

@@ -13,6 +13,7 @@ test_dir = Path(__file__).parent
 project_root = test_dir.parent.parent
 sys.path.insert(0, str(project_root))
 
+
 # Register custom pytest markers
 def pytest_configure(config):
     config.addinivalue_line(

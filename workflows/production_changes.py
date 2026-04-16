@@ -33,7 +33,7 @@ from pathlib import Path
 import warnings
 import json
 
-warnings.filterwarnings('ignore', message='.*PLUGGABLE_AUTH.*')
+warnings.filterwarnings("ignore", message=".*PLUGGABLE_AUTH.*")
 
 # Setup imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -57,6 +57,7 @@ from ciaf_agents.execution import ToolExecutor
 @dataclass
 class ProductionChange:
     """Production infrastructure change request."""
+
     change_id: str
     title: str
     description: str
@@ -77,17 +78,12 @@ class ProductionChangesWorkflow:
         """Initialize the production changes workflow."""
         self.iam_store = IAMStore()
         self.pam_store = PAMStore()
-        self.evidence_vault = EvidenceVault(
-            signing_secret="prodops-changes-key-2024"
-        )
-        self.policy_engine = PolicyEngine(
-            iam=self.iam_store,
-            pam=self.pam_store
-        )
+        self.evidence_vault = EvidenceVault(signing_secret="prodops-changes-key-2024")
+        self.policy_engine = PolicyEngine(iam=self.iam_store, pam=self.pam_store)
         self.executor = ToolExecutor(
             policy_engine=self.policy_engine,
             vault=self.evidence_vault,
-            pam=self.pam_store
+            pam=self.pam_store,
         )
         self._setup_roles_and_policies()
 
@@ -165,6 +161,7 @@ class ProductionChangesWorkflow:
         def risk_check(risk_level):
             def check(ctx):
                 return ctx.get("risk_level") in ["low", risk_level]
+
             return check
 
         requester_role = RoleDefinition(
@@ -173,12 +170,12 @@ class ProductionChangesWorkflow:
                 Permission(
                     action="submit_change",
                     resource_type="change",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="request_review",
                     resource_type="change",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -189,12 +186,12 @@ class ProductionChangesWorkflow:
                 Permission(
                     action="technical_review",
                     resource_type="change",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="approve_technical",
                     resource_type="change",
-                    conditions=risk_check("high")
+                    conditions=risk_check("high"),
                 ),
             ],
         )
@@ -205,12 +202,12 @@ class ProductionChangesWorkflow:
                 Permission(
                     action="database_review",
                     resource_type="change",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="approve_database_change",
                     resource_type="change",
-                    conditions=risk_check("high")
+                    conditions=risk_check("high"),
                 ),
             ],
         )
@@ -221,17 +218,17 @@ class ProductionChangesWorkflow:
                 Permission(
                     action="approve_low_risk",
                     resource_type="change",
-                    conditions=risk_check("low")
+                    conditions=risk_check("low"),
                 ),
                 Permission(
                     action="approve_medium_risk",
                     resource_type="change",
-                    conditions=risk_check("medium")
+                    conditions=risk_check("medium"),
                 ),
                 Permission(
                     action="escalate_high_risk",
                     resource_type="change",
-                    conditions=risk_check("high")
+                    conditions=risk_check("high"),
                 ),
             ],
         )
@@ -242,12 +239,12 @@ class ProductionChangesWorkflow:
                 Permission(
                     action="approve_critical",
                     resource_type="change",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="expedite_change",
                     resource_type="change",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -295,7 +292,9 @@ class ProductionChangesWorkflow:
         print("\n→ IDENTITY PLANE: Change Requester")
         print(f"  Principal: {self.change_requester.principal_id}")
         print(f"  Display: {self.change_requester.display_name}")
-        print(f"  Authority Level: {self.change_requester.attributes['authority_level']}")
+        print(
+            f"  Authority Level: {self.change_requester.attributes['authority_level']}"
+        )
 
         # POLICY PLANE: Risk assessment
         print("\n→ POLICY PLANE: Risk-Based Routing")
@@ -359,61 +358,69 @@ class ProductionChangesWorkflow:
             return ["TechLead", "DBA", "Approver", "Director", "Execute"]
 
     def _execute_review_chain(
-        self,
-        chain: List[str],
-        change: ProductionChange
+        self, chain: List[str], change: ProductionChange
     ) -> List[Dict[str, Any]]:
         """Simulate review chain execution."""
         reviews = []
 
         for i, reviewer_type in enumerate(chain):
             if reviewer_type == "Execute":
-                reviews.append({
-                    "stage": "Execute",
-                    "approved": True,
-                    "timestamp": f"2024-04-15T{15+i}:30:00Z",
-                    "action": "change_executed",
-                    "rollback_available": True,
-                })
+                reviews.append(
+                    {
+                        "stage": "Execute",
+                        "approved": True,
+                        "timestamp": f"2024-04-15T{15+i}:30:00Z",
+                        "action": "change_executed",
+                        "rollback_available": True,
+                    }
+                )
             elif reviewer_type == "TechLead":
-                reviews.append({
-                    "stage": "TechLead",
-                    "principal": self.tech_lead.principal_id,
-                    "reviewer_name": self.tech_lead.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T{15+i}:30:00Z",
-                    "signature": f"sig_{change.change_id}_tech_lead",
-                    "comment": "Reviewed architecture impact",
-                })
+                reviews.append(
+                    {
+                        "stage": "TechLead",
+                        "principal": self.tech_lead.principal_id,
+                        "reviewer_name": self.tech_lead.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T{15+i}:30:00Z",
+                        "signature": f"sig_{change.change_id}_tech_lead",
+                        "comment": "Reviewed architecture impact",
+                    }
+                )
             elif reviewer_type == "DBA":
-                reviews.append({
-                    "stage": "DBA",
-                    "principal": self.dba.principal_id,
-                    "reviewer_name": self.dba.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T{15+i}:30:00Z",
-                    "signature": f"sig_{change.change_id}_dba",
-                    "comment": "Data integrity verified",
-                })
+                reviews.append(
+                    {
+                        "stage": "DBA",
+                        "principal": self.dba.principal_id,
+                        "reviewer_name": self.dba.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T{15+i}:30:00Z",
+                        "signature": f"sig_{change.change_id}_dba",
+                        "comment": "Data integrity verified",
+                    }
+                )
             elif reviewer_type == "Approver":
-                reviews.append({
-                    "stage": "Approver",
-                    "principal": self.approver.principal_id,
-                    "reviewer_name": self.approver.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T{15+i}:30:00Z",
-                    "signature": f"sig_{change.change_id}_approver",
-                })
+                reviews.append(
+                    {
+                        "stage": "Approver",
+                        "principal": self.approver.principal_id,
+                        "reviewer_name": self.approver.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T{15+i}:30:00Z",
+                        "signature": f"sig_{change.change_id}_approver",
+                    }
+                )
             elif reviewer_type == "Director":
-                reviews.append({
-                    "stage": "Director",
-                    "principal": self.director.principal_id,
-                    "reviewer_name": self.director.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T{15+i}:30:00Z",
-                    "signature": f"sig_{change.change_id}_director",
-                    "authority": "Executive approval",
-                })
+                reviews.append(
+                    {
+                        "stage": "Director",
+                        "principal": self.director.principal_id,
+                        "reviewer_name": self.director.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T{15+i}:30:00Z",
+                        "signature": f"sig_{change.change_id}_director",
+                        "authority": "Executive approval",
+                    }
+                )
 
         return reviews
 
@@ -421,6 +428,7 @@ class ProductionChangesWorkflow:
 # ============================================================================
 # ADK AGENT CREATION
 # ============================================================================
+
 
 def create_production_changes_agent() -> Agent:
     """Create ADK agent for production infrastructure changes."""
@@ -503,6 +511,7 @@ root_agent = create_production_changes_agent()
 # MAIN: RUN WORKFLOW
 # ============================================================================
 
+
 def main():
     """Run production changes workflow demonstration."""
     workflow = ProductionChangesWorkflow()
@@ -566,7 +575,9 @@ def main():
         result = workflow.approve_change(change)
         print(f"\n  ✓ Status: {result['status']}")
         print(f"  ✓ Reviewers: {len(result['review_chain'])} stages")
-        print(f"  ✓ Rollback: {'Enabled' if result['rollback_enabled'] else 'Disabled'}")
+        print(
+            f"  ✓ Rollback: {'Enabled' if result['rollback_enabled'] else 'Disabled'}"
+        )
 
     print("\n" + "=" * 80)
     print("  WORKFLOW COMPLETE")

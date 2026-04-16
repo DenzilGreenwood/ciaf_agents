@@ -33,7 +33,7 @@ from pathlib import Path
 import warnings
 import json
 
-warnings.filterwarnings('ignore', message='.*PLUGGABLE_AUTH.*')
+warnings.filterwarnings("ignore", message=".*PLUGGABLE_AUTH.*")
 
 # Setup imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -57,6 +57,7 @@ from ciaf_agents.execution import ToolExecutor
 @dataclass
 class PaymentRequest:
     """Financial payment request."""
+
     payment_id: str
     vendor: str
     amount: float
@@ -74,17 +75,12 @@ class FinancialApprovalsWorkflow:
         """Initialize the financial approvals workflow."""
         self.iam_store = IAMStore()
         self.pam_store = PAMStore()
-        self.evidence_vault = EvidenceVault(
-            signing_secret="finance-approvals-key-2024"
-        )
-        self.policy_engine = PolicyEngine(
-            iam=self.iam_store,
-            pam=self.pam_store
-        )
+        self.evidence_vault = EvidenceVault(signing_secret="finance-approvals-key-2024")
+        self.policy_engine = PolicyEngine(iam=self.iam_store, pam=self.pam_store)
         self.executor = ToolExecutor(
             policy_engine=self.policy_engine,
             vault=self.evidence_vault,
-            pam=self.pam_store
+            pam=self.pam_store,
         )
         self._setup_roles_and_policies()
 
@@ -149,6 +145,7 @@ class FinancialApprovalsWorkflow:
         def amount_check(limit):
             def check(ctx):
                 return ctx.get("amount", 0) <= limit
+
             return check
 
         processor_role = RoleDefinition(
@@ -157,17 +154,17 @@ class FinancialApprovalsWorkflow:
                 Permission(
                     action="process_payment",
                     resource_type="payment",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="approve_payment_low",
                     resource_type="payment",
-                    conditions=amount_check(10000)
+                    conditions=amount_check(10000),
                 ),
                 Permission(
                     action="request_approval",
                     resource_type="payment",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -178,17 +175,17 @@ class FinancialApprovalsWorkflow:
                 Permission(
                     action="approve_mid_range",
                     resource_type="payment",
-                    conditions=amount_check(50000)
+                    conditions=amount_check(50000),
                 ),
                 Permission(
                     action="request_controller_approval",
                     resource_type="payment",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="deny_payment",
                     resource_type="payment",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -199,17 +196,17 @@ class FinancialApprovalsWorkflow:
                 Permission(
                     action="approve_high_value",
                     resource_type="payment",
-                    conditions=amount_check(250000)
+                    conditions=amount_check(250000),
                 ),
                 Permission(
                     action="escalate_to_cfo",
                     resource_type="payment",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="audit_payment",
                     resource_type="payment",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -220,12 +217,12 @@ class FinancialApprovalsWorkflow:
                 Permission(
                     action="approve_executive",
                     resource_type="payment",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="board_escalation",
                     resource_type="payment",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -271,7 +268,9 @@ class FinancialApprovalsWorkflow:
         print("\n→ IDENTITY PLANE: Processor Initiates")
         print(f"  Principal: {self.payment_processor.principal_id}")
         print(f"  Display: {self.payment_processor.display_name}")
-        print(f"  Max Standing Authority: ${self.payment_processor.attributes['max_approve']:,.2f}")
+        print(
+            f"  Max Standing Authority: ${self.payment_processor.attributes['max_approve']:,.2f}"
+        )
 
         # POLICY PLANE: Determine approval path
         print("\n→ POLICY PLANE: Amount-Based Routing")
@@ -284,11 +283,15 @@ class FinancialApprovalsWorkflow:
 
         # PRIVILEGE PLANE: Escalation needed
         print("\n→ PRIVILEGE PLANE: Escalation Analysis")
-        print(f"  ◆ Processor standing authority: ${self.payment_processor.attributes['max_approve']:,.2f}")
+        print(
+            f"  ◆ Processor standing authority: ${self.payment_processor.attributes['max_approve']:,.2f}"
+        )
         print(f"  ◆ Payment amount: ${request.amount:,.2f}")
 
         if request.amount > self.payment_processor.attributes["max_approve"]:
-            print(f"  → Escalation required (${request.amount:,.2f} > ${self.payment_processor.attributes['max_approve']:,.2f})")
+            print(
+                f"  → Escalation required (${request.amount:,.2f} > ${self.payment_processor.attributes['max_approve']:,.2f})"
+            )
             escalation_level = "HIGH"
         else:
             print(f"  ✓ Within standing authority")
@@ -307,7 +310,9 @@ class FinancialApprovalsWorkflow:
 
         decision = {
             "payment_id": request.payment_id,
-            "status": "APPROVED" if all(a["approved"] for a in approvals) else "PENDING",
+            "status": (
+                "APPROVED" if all(a["approved"] for a in approvals) else "PENDING"
+            ),
             "amount": request.amount,
             "approval_chain": approvals,
             "escalation_level": escalation_level,
@@ -327,64 +332,74 @@ class FinancialApprovalsWorkflow:
             return ["Processor", "Approver", "Controller", "CFO", "Board", "Release"]
 
     def _execute_approval_chain(
-        self,
-        chain: List[str],
-        request: PaymentRequest
+        self, chain: List[str], request: PaymentRequest
     ) -> List[Dict[str, Any]]:
         """Simulate approval chain execution."""
         approvals = []
 
         for i, level in enumerate(chain):
             if level == "Release":
-                approvals.append({
-                    "level": "Release",
-                    "approved": True,
-                    "timestamp": f"2024-04-15T14:{30+i}:00Z",
-                    "action": "payment_released",
-                })
+                approvals.append(
+                    {
+                        "level": "Release",
+                        "approved": True,
+                        "timestamp": f"2024-04-15T14:{30+i}:00Z",
+                        "action": "payment_released",
+                    }
+                )
             elif level == "Processor":
-                approvals.append({
-                    "level": "Processor",
-                    "principal": self.payment_processor.principal_id,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T14:{30+i}:00Z",
-                    "signature": f"sig_{request.payment_id}_processor",
-                })
+                approvals.append(
+                    {
+                        "level": "Processor",
+                        "principal": self.payment_processor.principal_id,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T14:{30+i}:00Z",
+                        "signature": f"sig_{request.payment_id}_processor",
+                    }
+                )
             elif level == "Approver":
-                approvals.append({
-                    "level": "Approver",
-                    "principal": self.approver.principal_id,
-                    "approver_name": self.approver.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T14:{30+i}:00Z",
-                    "signature": f"sig_{request.payment_id}_approver",
-                    "comment": "Verified vendor and supporting docs",
-                })
+                approvals.append(
+                    {
+                        "level": "Approver",
+                        "principal": self.approver.principal_id,
+                        "approver_name": self.approver.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T14:{30+i}:00Z",
+                        "signature": f"sig_{request.payment_id}_approver",
+                        "comment": "Verified vendor and supporting docs",
+                    }
+                )
             elif level == "Controller":
-                approvals.append({
-                    "level": "Controller",
-                    "principal": self.controller.principal_id,
-                    "approver_name": self.controller.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T14:{30+i}:00Z",
-                    "signature": f"sig_{request.payment_id}_controller",
-                })
+                approvals.append(
+                    {
+                        "level": "Controller",
+                        "principal": self.controller.principal_id,
+                        "approver_name": self.controller.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T14:{30+i}:00Z",
+                        "signature": f"sig_{request.payment_id}_controller",
+                    }
+                )
             elif level == "CFO":
-                approvals.append({
-                    "level": "CFO",
-                    "principal": self.cfo.principal_id,
-                    "approver_name": self.cfo.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T14:{30+i}:00Z",
-                    "signature": f"sig_{request.payment_id}_cfo",
-                })
+                approvals.append(
+                    {
+                        "level": "CFO",
+                        "principal": self.cfo.principal_id,
+                        "approver_name": self.cfo.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T14:{30+i}:00Z",
+                        "signature": f"sig_{request.payment_id}_cfo",
+                    }
+                )
             elif level == "Board":
-                approvals.append({
-                    "level": "Board",
-                    "approved": False,  # Simulated pending
-                    "status": "PENDING_BOARD_REVIEW",
-                    "meeting": "2024-04-22",
-                })
+                approvals.append(
+                    {
+                        "level": "Board",
+                        "approved": False,  # Simulated pending
+                        "status": "PENDING_BOARD_REVIEW",
+                        "meeting": "2024-04-22",
+                    }
+                )
 
         return approvals
 
@@ -392,6 +407,7 @@ class FinancialApprovalsWorkflow:
 # ============================================================================
 # ADK AGENT CREATION
 # ============================================================================
+
 
 def create_financial_approvals_agent() -> Agent:
     """Create ADK agent for financial payment approvals."""
@@ -469,6 +485,7 @@ root_agent = create_financial_approvals_agent()
 # MAIN: RUN WORKFLOW DEMONSTRATION
 # ============================================================================
 
+
 def main():
     """Run financial approvals workflow demonstration."""
     workflow = FinancialApprovalsWorkflow()
@@ -519,6 +536,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 def main():
     """Run financial approvals workflow demonstration."""

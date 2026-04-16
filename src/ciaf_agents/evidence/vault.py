@@ -7,25 +7,30 @@ Implements cryptographically signed, chained receipts for all actions and decisi
 from typing import List, Optional
 import uuid
 
-from ciaf_agents.core.types import ActionRequest, ElevationGrant, EvidenceReceipt, PolicyDecision
+from ciaf_agents.core.types import (
+    ActionRequest,
+    ElevationGrant,
+    EvidenceReceipt,
+    PolicyDecision,
+)
 from ciaf_agents.utils.helpers import canonical_json, sha256_hex, sign_receipt, utc_now
 
 
 class EvidenceVault:
     """
     Tamper-evident storage for action receipts.
-    
+
     The Evidence Vault:
     - Creates cryptographically signed receipts
     - Chains receipts via hash linking
     - Supports integrity verification
     - Provides append-only audit trail
     """
-    
+
     def __init__(self, signing_secret: str) -> None:
         """
         Initialize evidence vault.
-        
+
         Args:
             signing_secret: Secret key for HMAC signing (keep secure!)
         """
@@ -40,18 +45,18 @@ class EvidenceVault:
     ) -> EvidenceReceipt:
         """
         Create and store a new evidence receipt.
-        
+
         Args:
             request: The action request
             decision: The policy decision
             grant: Associated elevation grant (if any)
-            
+
         Returns:
             The created receipt
         """
         # Get hash of previous receipt for chaining
         prior_hash = self.receipts[-1].receipt_hash if self.receipts else None
-        
+
         # Hash the parameters
         params_hash = sha256_hex(canonical_json(request.params))
 
@@ -76,17 +81,18 @@ class EvidenceVault:
 
         # Hash the payload
         receipt_hash = sha256_hex(canonical_json(base_payload))
-        
+
         # Sign the payload + hash
         signature = sign_receipt(
-            {**base_payload, "receipt_hash": receipt_hash},
-            self.signing_secret
+            {**base_payload, "receipt_hash": receipt_hash}, self.signing_secret
         )
 
         # Create the receipt object
         receipt = EvidenceReceipt(
             receipt_id=base_payload["receipt_id"],
-            timestamp=__import__('datetime').datetime.fromisoformat(base_payload["timestamp"]),
+            timestamp=__import__("datetime").datetime.fromisoformat(
+                base_payload["timestamp"]
+            ),
             principal_id=base_payload["principal_id"],
             principal_type=base_payload["principal_type"],
             action=base_payload["action"],
@@ -103,24 +109,24 @@ class EvidenceVault:
             receipt_hash=receipt_hash,
             signature=signature,
         )
-        
+
         self.receipts.append(receipt)
         return receipt
 
     def verify_chain(self) -> bool:
         """
         Verify the integrity of the entire receipt chain.
-        
+
         Checks:
         - Hash integrity of each receipt
         - Signature validity
         - Chain linkage (each receipt references prior)
-        
+
         Returns:
             True if chain is valid, False otherwise
         """
         previous_hash = None
-        
+
         for receipt in self.receipts:
             # Reconstruct the payload
             payload = {
@@ -148,8 +154,7 @@ class EvidenceVault:
 
             # Verify signature
             expected_sig = sign_receipt(
-                {**payload, "receipt_hash": receipt.receipt_hash},
-                self.signing_secret
+                {**payload, "receipt_hash": receipt.receipt_hash}, self.signing_secret
             )
             if expected_sig != receipt.signature:
                 return False
@@ -159,16 +164,16 @@ class EvidenceVault:
                 return False
 
             previous_hash = receipt.receipt_hash
-        
+
         return True
 
     def verify_receipt(self, receipt: EvidenceReceipt) -> bool:
         """
         Verify a single receipt's integrity.
-        
+
         Args:
             receipt: Receipt to verify
-            
+
         Returns:
             True if receipt is valid
         """
@@ -197,18 +202,17 @@ class EvidenceVault:
 
         # Check signature
         expected_sig = sign_receipt(
-            {**payload, "receipt_hash": receipt.receipt_hash},
-            self.signing_secret
+            {**payload, "receipt_hash": receipt.receipt_hash}, self.signing_secret
         )
         return expected_sig == receipt.signature
 
     def get_receipts_by_principal(self, principal_id: str) -> List[EvidenceReceipt]:
         """
         Get all receipts for a specific principal.
-        
+
         Args:
             principal_id: ID to search for
-            
+
         Returns:
             List of receipts
         """
@@ -217,10 +221,10 @@ class EvidenceVault:
     def get_receipts_by_action(self, action: str) -> List[EvidenceReceipt]:
         """
         Get all receipts for a specific action.
-        
+
         Args:
             action: Action to search for
-            
+
         Returns:
             List of receipts
         """
@@ -229,7 +233,7 @@ class EvidenceVault:
     def get_denied_receipts(self) -> List[EvidenceReceipt]:
         """
         Get all denied action receipts.
-        
+
         Returns:
             List of denied receipts
         """
@@ -238,7 +242,7 @@ class EvidenceVault:
     def get_elevated_receipts(self) -> List[EvidenceReceipt]:
         """
         Get all receipts that used privilege elevation.
-        
+
         Returns:
             List of elevated receipts
         """
@@ -247,7 +251,7 @@ class EvidenceVault:
     def export_receipts(self) -> List[dict]:
         """
         Export all receipts as dictionaries for serialization.
-        
+
         Returns:
             List of receipt dictionaries
         """

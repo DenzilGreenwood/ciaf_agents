@@ -25,7 +25,6 @@ from .customer_communications import root_agent as customer_communications_agent
 from .data_access_export import root_agent as data_access_agent
 from .web_search import root_agent as web_search_agent
 
-
 # Create a main router agent that helps users choose which workflow to use
 router_agent = Agent(
     name="ciaf_workflow_router",
@@ -62,11 +61,11 @@ root_agent = App(
 )
 
 __all__ = [
-    'root_agent',
-    'healthcare_claims_agent',
-    'financial_approvals_agent',
-    'production_changes_agent',
-    'customer_communications_agent',
-    'data_access_agent',
-    'web_search_agent',
+    "root_agent",
+    "healthcare_claims_agent",
+    "financial_approvals_agent",
+    "production_changes_agent",
+    "customer_communications_agent",
+    "data_access_agent",
+    "web_search_agent",
 ]

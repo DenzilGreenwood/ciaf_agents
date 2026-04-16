@@ -25,9 +25,9 @@ def test_issue_grant():
         reason="Test approval",
         approved_by="manager@example.com",
         duration_minutes=15,
-        ticket_id="TEST-001"
+        ticket_id="TEST-001",
     )
-    
+
     assert grant.principal_id == "test-agent-001"
     assert "approve_payment" in grant.allowed_actions
     assert grant.is_active()
@@ -43,9 +43,9 @@ def test_find_active_grant():
         reason="Test approval",
         approved_by="manager@example.com",
         duration_minutes=15,
-        ticket_id="TEST-001"
+        ticket_id="TEST-001",
     )
-    
+
     found = pam.find_active_grant("test-agent-001", "approve_payment", "payment")
     assert found is not None
     assert found.grant_id == grant.grant_id
@@ -68,9 +68,9 @@ def test_revoke_grant():
         reason="Test approval",
         approved_by="manager@example.com",
         duration_minutes=15,
-        ticket_id="TEST-001"
+        ticket_id="TEST-001",
     )
-    
+
     result = pam.revoke_grant(grant.grant_id)
     assert result is True
     assert grant.grant_id not in pam.grants
@@ -79,7 +79,7 @@ def test_revoke_grant():
 def test_revoke_all_grants_for_principal():
     """Test revoking all grants for a principal."""
     pam = PAMStore()
-    
+
     # Issue multiple grants
     pam.issue_grant(
         principal_id="test-agent-001",
@@ -88,7 +88,7 @@ def test_revoke_all_grants_for_principal():
         reason="Test 1",
         approved_by="manager@example.com",
         duration_minutes=15,
-        ticket_id="TEST-001"
+        ticket_id="TEST-001",
     )
     pam.issue_grant(
         principal_id="test-agent-001",
@@ -97,9 +97,9 @@ def test_revoke_all_grants_for_principal():
         reason="Test 2",
         approved_by="manager@example.com",
         duration_minutes=15,
-        ticket_id="TEST-002"
+        ticket_id="TEST-002",
     )
-    
+
     count = pam.revoke_all_grants_for_principal("test-agent-001")
     assert count == 2
     assert len(pam.grants) == 0
@@ -115,12 +115,12 @@ def test_extend_grant():
         reason="Test approval",
         approved_by="manager@example.com",
         duration_minutes=15,
-        ticket_id="TEST-001"
+        ticket_id="TEST-001",
     )
-    
+
     original_expiry = grant.expires_at
     result = pam.extend_grant(grant.grant_id, 10)
-    
+
     assert result is True
     extended_grant = pam.grants[grant.grant_id]
     assert extended_grant.expires_at > original_expiry
@@ -129,7 +129,7 @@ def test_extend_grant():
 def test_cleanup_expired_grants():
     """Test cleaning up expired grants."""
     pam = PAMStore()
-    
+
     # Issue a grant with 0 duration (immediately expired)
     grant1 = pam.issue_grant(
         principal_id="test-agent-001",
@@ -138,9 +138,9 @@ def test_cleanup_expired_grants():
         reason="Test",
         approved_by="manager",
         duration_minutes=0,
-        ticket_id="TEST-001"
+        ticket_id="TEST-001",
     )
-    
+
     # Issue a normal grant
     grant2 = pam.issue_grant(
         principal_id="test-agent-002",
@@ -149,9 +149,9 @@ def test_cleanup_expired_grants():
         reason="Test",
         approved_by="manager",
         duration_minutes=15,
-        ticket_id="TEST-002"
+        ticket_id="TEST-002",
     )
-    
+
     # Cleanup should remove expired grant
     removed_count = pam.cleanup_expired_grants()
     assert removed_count == 1
@@ -162,7 +162,7 @@ def test_cleanup_expired_grants():
 def test_get_active_grants_for_principal():
     """Test getting all active grants for a principal."""
     pam = PAMStore()
-    
+
     # Issue multiple grants for same principal
     grant1 = pam.issue_grant(
         principal_id="test-agent-001",
@@ -171,9 +171,9 @@ def test_get_active_grants_for_principal():
         reason="Test 1",
         approved_by="manager",
         duration_minutes=15,
-        ticket_id="TEST-001"
+        ticket_id="TEST-001",
     )
-    
+
     grant2 = pam.issue_grant(
         principal_id="test-agent-001",
         allowed_actions={"action2"},
@@ -181,9 +181,9 @@ def test_get_active_grants_for_principal():
         reason="Test 2",
         approved_by="manager",
         duration_minutes=15,
-        ticket_id="TEST-002"
+        ticket_id="TEST-002",
     )
-    
+
     # Issue grant for different principal
     grant3 = pam.issue_grant(
         principal_id="test-agent-002",
@@ -192,9 +192,9 @@ def test_get_active_grants_for_principal():
         reason="Test 3",
         approved_by="manager",
         duration_minutes=15,
-        ticket_id="TEST-003"
+        ticket_id="TEST-003",
     )
-    
+
     # Get grants for test-agent-001
     grants = pam.get_active_grants_for_principal("test-agent-001")
     assert len(grants) == 2
@@ -225,9 +225,9 @@ def test_find_grant_wrong_action():
         reason="Test",
         approved_by="manager",
         duration_minutes=15,
-        ticket_id="TEST-001"
+        ticket_id="TEST-001",
     )
-    
+
     # Try to find with different action
     found = pam.find_active_grant("test-agent-001", "action2", "resource1")
     assert found is None
@@ -243,9 +243,9 @@ def test_find_grant_wrong_resource_type():
         reason="Test",
         approved_by="manager",
         duration_minutes=15,
-        ticket_id="TEST-001"
+        ticket_id="TEST-001",
     )
-    
+
     # Try to find with different resource type
     found = pam.find_active_grant("test-agent-001", "action1", "resource2")
     assert found is None

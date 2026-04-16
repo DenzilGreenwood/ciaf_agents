@@ -17,12 +17,12 @@ def utc_now() -> datetime:
 def canonical_json(data: Dict[str, Any]) -> str:
     """
     Convert data to canonical JSON representation.
-    
+
     Ensures consistent serialization for hashing and signing.
-    
+
     Args:
         data: Dictionary to serialize
-        
+
     Returns:
         Canonical JSON string
     """
@@ -32,10 +32,10 @@ def canonical_json(data: Dict[str, Any]) -> str:
 def sha256_hex(text: str) -> str:
     """
     Compute SHA-256 hash of text.
-    
+
     Args:
         text: Input text to hash
-        
+
     Returns:
         Hexadecimal hash string
     """
@@ -45,11 +45,11 @@ def sha256_hex(text: str) -> str:
 def sign_receipt(payload: Dict[str, Any], secret_key: str) -> str:
     """
     Create HMAC-SHA256 signature for a payload.
-    
+
     Args:
         payload: Data to sign
         secret_key: Signing secret
-        
+
     Returns:
         Hexadecimal signature string
     """

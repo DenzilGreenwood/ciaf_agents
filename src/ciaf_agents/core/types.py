@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Set, Callable
 
 class RiskLevel(str, Enum):
     """Risk classification for actions and resources."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -20,7 +21,7 @@ class RiskLevel(str, Enum):
 class Identity:
     """
     Represents a unique digital principal (agent, user, or service).
-    
+
     Attributes:
         principal_id: Unique identifier for the principal
         principal_type: Type classification ("agent", "user", "service")
@@ -28,6 +29,7 @@ class Identity:
         roles: Set of assigned role names
         attributes: Contextual attributes (tenant, department, etc.)
     """
+
     principal_id: str
     principal_type: str
     display_name: str
@@ -39,13 +41,14 @@ class Identity:
 class Resource:
     """
     Represents a target resource for an action.
-    
+
     Attributes:
         resource_id: Unique identifier for the resource
         resource_type: Type classification (e.g., "email", "payment", "record")
         owner_tenant: Owning tenant/organization
         attributes: Resource-specific attributes
     """
+
     resource_id: str
     resource_type: str
     owner_tenant: str
@@ -56,7 +59,7 @@ class Resource:
 class ActionRequest:
     """
     Represents a request to perform an action on a resource.
-    
+
     Attributes:
         action: The action to perform (e.g., "read_record", "approve_payment")
         resource: Target resource
@@ -65,37 +68,41 @@ class ActionRequest:
         requested_by: Identity making the request
         correlation_id: Unique ID for tracking related requests
     """
+
     action: str
     resource: Resource
     params: Dict[str, Any]
     justification: str
     requested_by: Identity
-    correlation_id: str = field(default_factory=lambda: __import__('uuid').uuid4().hex)
+    correlation_id: str = field(default_factory=lambda: __import__("uuid").uuid4().hex)
 
 
 @dataclass
 class Permission:
     """
     Defines a permission with optional contextual conditions.
-    
+
     Attributes:
         action: The action this permission allows
         resource_type: The resource type this applies to ("*" for all)
         conditions: Optional callable to evaluate contextual conditions
     """
+
     action: str
     resource_type: str
     conditions: Optional[Callable[[Identity, Resource, Dict[str, Any]], bool]] = None
 
-    def matches(self, identity: Identity, resource: Resource, params: Dict[str, Any]) -> bool:
+    def matches(
+        self, identity: Identity, resource: Resource, params: Dict[str, Any]
+    ) -> bool:
         """
         Check if this permission matches the given context.
-        
+
         Args:
             identity: The requesting identity
             resource: The target resource
             params: Action parameters
-            
+
         Returns:
             True if permission applies, False otherwise
         """
@@ -110,11 +117,12 @@ class Permission:
 class RoleDefinition:
     """
     Defines a named role with a set of permissions.
-    
+
     Attributes:
         name: Unique role name
         permissions: List of permissions granted by this role
     """
+
     name: str
     permissions: List[Permission]
 
@@ -123,7 +131,7 @@ class RoleDefinition:
 class ElevationGrant:
     """
     Represents a time-bound privilege elevation grant.
-    
+
     Attributes:
         grant_id: Unique identifier for this grant
         principal_id: Who received the elevation
@@ -134,6 +142,7 @@ class ElevationGrant:
         expires_at: When the grant expires
         ticket_id: Reference to approval ticket/case
     """
+
     grant_id: str
     principal_id: str
     allowed_actions: Set[str]
@@ -146,6 +155,7 @@ class ElevationGrant:
     def is_active(self) -> bool:
         """Check if this grant is still valid."""
         from ciaf_agents.utils.helpers import utc_now
+
         return utc_now() < self.expires_at
 
 
@@ -153,7 +163,7 @@ class ElevationGrant:
 class PolicyDecision:
     """
     Result of a policy evaluation.
-    
+
     Attributes:
         allowed: Whether the action is permitted
         requires_elevation: Whether PAM elevation is required
@@ -161,6 +171,7 @@ class PolicyDecision:
         matched_role: Role that provided the permission (if any)
         obligations: Additional requirements or constraints
     """
+
     allowed: bool
     requires_elevation: bool
     reason: str
@@ -172,7 +183,7 @@ class PolicyDecision:
 class EvidenceReceipt:
     """
     Tamper-evident receipt for an action or decision.
-    
+
     Attributes:
         receipt_id: Unique identifier for this receipt
         timestamp: When the event occurred
@@ -192,6 +203,7 @@ class EvidenceReceipt:
         receipt_hash: Hash of this receipt's content
         signature: Cryptographic signature
     """
+
     receipt_id: str
     timestamp: datetime
     principal_id: str

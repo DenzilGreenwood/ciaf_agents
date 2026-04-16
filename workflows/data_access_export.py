@@ -40,7 +40,7 @@ from pathlib import Path
 import warnings
 import json
 
-warnings.filterwarnings('ignore', message='.*PLUGGABLE_AUTH.*')
+warnings.filterwarnings("ignore", message=".*PLUGGABLE_AUTH.*")
 
 # Setup imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -63,6 +63,7 @@ from ciaf_agents.execution import ToolExecutor
 
 class DataClassification(Enum):
     """Data classification levels."""
+
     PUBLIC = "public"
     CUSTOMER = "customer"
     FINANCIAL = "financial"
@@ -72,6 +73,7 @@ class DataClassification(Enum):
 @dataclass
 class DataAccessRequest:
     """Data access request."""
+
     request_id: str
     requester_id: str
     requester_role: str
@@ -95,17 +97,12 @@ class DataAccessExportWorkflow:
         """Initialize the data access workflow."""
         self.iam_store = IAMStore()
         self.pam_store = PAMStore()
-        self.evidence_vault = EvidenceVault(
-            signing_secret="data-access-key-2024"
-        )
-        self.policy_engine = PolicyEngine(
-            iam=self.iam_store,
-            pam=self.pam_store
-        )
+        self.evidence_vault = EvidenceVault(signing_secret="data-access-key-2024")
+        self.policy_engine = PolicyEngine(iam=self.iam_store, pam=self.pam_store)
         self.executor = ToolExecutor(
             policy_engine=self.policy_engine,
             vault=self.evidence_vault,
-            pam=self.pam_store
+            pam=self.pam_store,
         )
         self._setup_roles_and_policies()
 
@@ -192,12 +189,12 @@ class DataAccessExportWorkflow:
                 Permission(
                     action="route_access_request",
                     resource_type="data_access",
-                    conditions=lambda ctx: True
+                    conditions=lambda ctx: True,
                 ),
                 Permission(
                     action="log_access",
                     resource_type="data_access",
-                    conditions=lambda ctx: True
+                    conditions=lambda ctx: True,
                 ),
             ],
         )
@@ -208,12 +205,15 @@ class DataAccessExportWorkflow:
                 Permission(
                     action="access_customer_data",
                     resource_type="data_access",
-                    conditions=lambda ctx: ctx.get("data_classification") == "customer" and same_tenant(ctx) and justified_access(ctx)
+                    conditions=lambda ctx: ctx.get("data_classification") == "customer"
+                    and same_tenant(ctx)
+                    and justified_access(ctx),
                 ),
                 Permission(
                     action="export_customer_data",
                     resource_type="data_access",
-                    conditions=lambda ctx: ctx.get("data_classification") == "customer" and same_tenant(ctx)
+                    conditions=lambda ctx: ctx.get("data_classification") == "customer"
+                    and same_tenant(ctx),
                 ),
             ],
         )
@@ -224,7 +224,8 @@ class DataAccessExportWorkflow:
                 Permission(
                     action="access_anonymized_data",
                     resource_type="data_access",
-                    conditions=lambda ctx: ctx.get("data_classification") == "customer" and not_export(ctx)
+                    conditions=lambda ctx: ctx.get("data_classification") == "customer"
+                    and not_export(ctx),
                 ),
             ],
         )
@@ -235,12 +236,12 @@ class DataAccessExportWorkflow:
                 Permission(
                     action="approve_export",
                     resource_type="data_access",
-                    conditions=lambda ctx: ctx.get("is_export")
+                    conditions=lambda ctx: ctx.get("is_export"),
                 ),
                 Permission(
                     action="audit_access",
                     resource_type="data_access",
-                    conditions=lambda ctx: True
+                    conditions=lambda ctx: True,
                 ),
             ],
         )
@@ -251,12 +252,12 @@ class DataAccessExportWorkflow:
                 Permission(
                     action="approve_confidential_access",
                     resource_type="data_access",
-                    conditions=lambda ctx: True
+                    conditions=lambda ctx: True,
                 ),
                 Permission(
                     action="override_restrictions",
                     resource_type="data_access",
-                    conditions=lambda ctx: True
+                    conditions=lambda ctx: True,
                 ),
             ],
         )
@@ -274,10 +275,7 @@ class DataAccessExportWorkflow:
         self.iam_store.add_identity(self.compliance_officer)
         self.iam_store.add_identity(self.chief_data_officer)
 
-    def process_access_request(
-        self,
-        request: DataAccessRequest
-    ) -> Dict[str, Any]:
+    def process_access_request(self, request: DataAccessRequest) -> Dict[str, Any]:
         """
         Process data access request with tenant isolation and classification.
 
@@ -370,7 +368,9 @@ class DataAccessExportWorkflow:
             "status": "APPROVED" if all(a["approved"] for a in approvals) else "DENIED",
             "data_classification": request.data_classification.value,
             "tenant_isolation": request.source_tenant == request.target_tenant,
-            "rows_accessible": request.rows_requested if all(a["approved"] for a in approvals) else 0,
+            "rows_accessible": (
+                request.rows_requested if all(a["approved"] for a in approvals) else 0
+            ),
             "is_export": request.is_export,
             "approval_chain": approvals,
             "access_log_id": f"log_{request.request_id}",
@@ -378,10 +378,7 @@ class DataAccessExportWorkflow:
 
         return decision
 
-    def _determine_approval_chain(
-        self,
-        request: DataAccessRequest
-    ) -> List[str]:
+    def _determine_approval_chain(self, request: DataAccessRequest) -> List[str]:
         """Determine approval chain based on data classification."""
         if request.data_classification == DataClassification.PUBLIC:
             return ["Agent", "Grant"]
@@ -396,60 +393,72 @@ class DataAccessExportWorkflow:
             return ["Agent", "Compliance", "CDO", "Grant"]
 
     def _execute_approval_chain(
-        self,
-        chain: List[str],
-        request: DataAccessRequest
+        self, chain: List[str], request: DataAccessRequest
     ) -> List[Dict[str, Any]]:
         """Simulate approval chain execution."""
         approvals = []
 
         for i, approver_type in enumerate(chain):
             if approver_type == "Grant":
-                approvals.append({
-                    "stage": "Grant",
-                    "approved": True,
-                    "timestamp": f"2024-04-15T17:{30+i}:00Z",
-                    "action": "access_granted",
-                    "access_token": f"token_{request.request_id}",
-                })
+                approvals.append(
+                    {
+                        "stage": "Grant",
+                        "approved": True,
+                        "timestamp": f"2024-04-15T17:{30+i}:00Z",
+                        "action": "access_granted",
+                        "access_token": f"token_{request.request_id}",
+                    }
+                )
             elif approver_type == "Agent":
-                approvals.append({
-                    "stage": "Agent",
-                    "principal": self.data_agent.principal_id,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T17:{30+i}:00Z",
-                    "action": "route_and_validate",
-                })
+                approvals.append(
+                    {
+                        "stage": "Agent",
+                        "principal": self.data_agent.principal_id,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T17:{30+i}:00Z",
+                        "action": "route_and_validate",
+                    }
+                )
             elif approver_type == "Analyst":
-                approvals.append({
-                    "stage": "Analyst",
-                    "principal": self.analyst.principal_id,
-                    "approver_name": self.analyst.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T17:{30+i}:00Z",
-                    "signature": f"sig_{request.request_id}_analyst",
-                    "justification_check": "Business purpose verified",
-                })
+                approvals.append(
+                    {
+                        "stage": "Analyst",
+                        "principal": self.analyst.principal_id,
+                        "approver_name": self.analyst.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T17:{30+i}:00Z",
+                        "signature": f"sig_{request.request_id}_analyst",
+                        "justification_check": "Business purpose verified",
+                    }
+                )
             elif approver_type == "Compliance":
-                approvals.append({
-                    "stage": "Compliance",
-                    "principal": self.compliance_officer.principal_id,
-                    "approver_name": self.compliance_officer.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T17:{30+i}:00Z",
-                    "signature": f"sig_{request.request_id}_compliance",
-                    "checks": ["tenant_isolation", "data_classification", "export_policy"],
-                })
+                approvals.append(
+                    {
+                        "stage": "Compliance",
+                        "principal": self.compliance_officer.principal_id,
+                        "approver_name": self.compliance_officer.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T17:{30+i}:00Z",
+                        "signature": f"sig_{request.request_id}_compliance",
+                        "checks": [
+                            "tenant_isolation",
+                            "data_classification",
+                            "export_policy",
+                        ],
+                    }
+                )
             elif approver_type == "CDO":
-                approvals.append({
-                    "stage": "CDO",
-                    "principal": self.chief_data_officer.principal_id,
-                    "approver_name": self.chief_data_officer.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T17:{30+i}:00Z",
-                    "signature": f"sig_{request.request_id}_cdo",
-                    "authority": "Executive approval for confidential data",
-                })
+                approvals.append(
+                    {
+                        "stage": "CDO",
+                        "principal": self.chief_data_officer.principal_id,
+                        "approver_name": self.chief_data_officer.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T17:{30+i}:00Z",
+                        "signature": f"sig_{request.request_id}_cdo",
+                        "authority": "Executive approval for confidential data",
+                    }
+                )
 
         return approvals
 
@@ -457,6 +466,7 @@ class DataAccessExportWorkflow:
 # ============================================================================
 # ADK AGENT CREATION
 # ============================================================================
+
 
 def create_data_access_agent() -> Agent:
     """Create ADK agent for data access governance."""
@@ -540,6 +550,7 @@ root_agent = create_data_access_agent()
 # ============================================================================
 # MAIN: RUN WORKFLOW
 # ============================================================================
+
 
 def main():
     """Run data access workflow demonstration."""

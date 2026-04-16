@@ -34,7 +34,7 @@ from pathlib import Path
 import warnings
 import json
 
-warnings.filterwarnings('ignore', message='.*PLUGGABLE_AUTH.*')
+warnings.filterwarnings("ignore", message=".*PLUGGABLE_AUTH.*")
 
 # Setup imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -59,6 +59,7 @@ from ciaf_agents.execution import ToolExecutor
 @dataclass
 class ClaimRecord:
     """Medical claim record."""
+
     claim_id: str
     patient_id: str
     provider: str
@@ -73,6 +74,7 @@ class ClaimRecord:
 # HEALTHCARE CLAIMS AGENT (WITH CIAF GOVERNANCE)
 # ============================================================================
 
+
 class HealthcareClaimsAgent:
     """Healthcare claims processing with CIAF governance."""
 
@@ -80,17 +82,12 @@ class HealthcareClaimsAgent:
         """Initialize the healthcare claims agent."""
         self.iam_store = IAMStore()
         self.pam_store = PAMStore()
-        self.evidence_vault = EvidenceVault(
-            signing_secret="healthcare-claims-key-2024"
-        )
-        self.policy_engine = PolicyEngine(
-            iam=self.iam_store,
-            pam=self.pam_store
-        )
+        self.evidence_vault = EvidenceVault(signing_secret="healthcare-claims-key-2024")
+        self.policy_engine = PolicyEngine(iam=self.iam_store, pam=self.pam_store)
         self.executor = ToolExecutor(
             policy_engine=self.policy_engine,
             vault=self.evidence_vault,
-            pam=self.pam_store
+            pam=self.pam_store,
         )
         self._setup_roles_and_policies()
 
@@ -154,8 +151,10 @@ class HealthcareClaimsAgent:
 
         def claim_amount_check(amount_limit):
             """Factory: Create condition for claim amount."""
+
             def check(ctx):
                 return ctx.get("claim_amount", 0) <= amount_limit
+
             return check
 
         # Roles with permissions
@@ -165,22 +164,22 @@ class HealthcareClaimsAgent:
                 Permission(
                     action="review_claim",
                     resource_type="claim",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
                 Permission(
                     action="auto_approve_claim",
                     resource_type="claim",
-                    conditions=claim_amount_check(1000)  # Only up to $1k
+                    conditions=claim_amount_check(1000),  # Only up to $1k
                 ),
                 Permission(
                     action="request_medical_review",
                     resource_type="claim",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
                 Permission(
                     action="request_financial_review",
                     resource_type="claim",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
             ],
         )
@@ -191,17 +190,17 @@ class HealthcareClaimsAgent:
                 Permission(
                     action="medical_review",
                     resource_type="claim",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
                 Permission(
                     action="approve_medical",
                     resource_type="claim",
-                    conditions=claim_amount_check(5000)
+                    conditions=claim_amount_check(5000),
                 ),
                 Permission(
                     action="deny_claim_medical",
                     resource_type="claim",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
             ],
         )
@@ -212,12 +211,12 @@ class HealthcareClaimsAgent:
                 Permission(
                     action="financial_review",
                     resource_type="claim",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
                 Permission(
                     action="approve_high_value",
                     resource_type="claim",
-                    conditions=claim_amount_check(50000)
+                    conditions=claim_amount_check(50000),
                 ),
             ],
         )
@@ -228,12 +227,12 @@ class HealthcareClaimsAgent:
                 Permission(
                     action="escalate_hipaa",
                     resource_type="claim",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
                 Permission(
                     action="audit_claim",
                     resource_type="claim",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
             ],
         )
@@ -336,9 +335,7 @@ class HealthcareClaimsAgent:
         return decision
 
     def _execute_claim_decision(
-        self,
-        claim: ClaimRecord,
-        action: str
+        self, claim: ClaimRecord, action: str
     ) -> Dict[str, Any]:
         """Simulate claim decision execution."""
         decisions = {
@@ -373,6 +370,7 @@ class HealthcareClaimsAgent:
 # ============================================================================
 # ADK AGENT CREATION
 # ============================================================================
+
 
 def create_healthcare_claims_agent() -> Agent:
     """Create ADK agent for healthcare claims processing."""
@@ -468,6 +466,7 @@ root_agent = create_healthcare_claims_agent()
 # ============================================================================
 # MAIN: RUN AGENT DEMONSTRATION
 # ============================================================================
+
 
 def main():
     """Run healthcare claims agent demonstration."""

@@ -15,7 +15,7 @@ from ciaf_agents.policy.engine import PolicyEngine
 class ToolExecutor:
     """
     Mediated execution wrapper for agent actions.
-    
+
     The Tool Executor:
     - Evaluates policy before execution
     - Checks for required PAM elevation
@@ -23,16 +23,13 @@ class ToolExecutor:
     - Provides structured execution results
     - Supports interruptibility and kill switches
     """
-    
+
     def __init__(
-        self,
-        policy_engine: PolicyEngine,
-        vault: EvidenceVault,
-        pam: PAMStore
+        self, policy_engine: PolicyEngine, vault: EvidenceVault, pam: PAMStore
     ) -> None:
         """
         Initialize tool executor.
-        
+
         Args:
             policy_engine: Policy evaluation engine
             vault: Evidence vault for receipt storage
@@ -45,23 +42,23 @@ class ToolExecutor:
     def execute(self, request: ActionRequest) -> Dict[str, Any]:
         """
         Execute an action request with full controls.
-        
+
         Execution flow:
         1. Evaluate policy
         2. Check for active PAM grant if needed
         3. Record evidence
         4. Execute action (if allowed)
         5. Return result with receipt
-        
+
         Args:
             request: The action request to execute
-            
+
         Returns:
             Dictionary with status, result, and receipt
         """
         # Step 1: Evaluate policy
         decision = self.policy_engine.evaluate(request)
-        
+
         # Step 2: Find elevation grant if required
         grant = None
         if decision.allowed or decision.requires_elevation:
@@ -97,17 +94,17 @@ class ToolExecutor:
     def _dispatch_to_tool(self, request: ActionRequest) -> Dict[str, Any]:
         """
         Dispatch to actual tool implementation.
-        
+
         In a production system, this would:
         - Call registered tool handlers
         - Apply schema validation
         - Enforce timeouts
         - Filter outputs
         - Support interruption
-        
+
         Args:
             request: The action request
-            
+
         Returns:
             Tool execution result
         """
@@ -123,10 +120,10 @@ class ToolExecutor:
     def execute_batch(self, requests: list) -> list:
         """
         Execute multiple requests in sequence.
-        
+
         Args:
             requests: List of action requests
-            
+
         Returns:
             List of results
         """
@@ -135,17 +132,17 @@ class ToolExecutor:
     def dry_run(self, request: ActionRequest) -> Dict[str, Any]:
         """
         Evaluate a request without executing or recording evidence.
-        
+
         Useful for testing policies and permissions.
-        
+
         Args:
             request: The action request to evaluate
-            
+
         Returns:
             Policy decision without execution
         """
         decision = self.policy_engine.evaluate(request)
-        
+
         grant = self.pam.find_active_grant(
             principal_id=request.requested_by.principal_id,
             action=request.action,
@@ -165,14 +162,14 @@ class ToolExecutor:
 class ToolRegistry:
     """
     Registry for tool implementations.
-    
+
     In a production system, this would manage:
     - Tool registration and discovery
     - Schema validation
     - Tool versioning
     - Capability declaration
     """
-    
+
     def __init__(self) -> None:
         """Initialize empty tool registry."""
         self.tools: Dict[str, Any] = {}
@@ -180,7 +177,7 @@ class ToolRegistry:
     def register_tool(self, action: str, handler: Any) -> None:
         """
         Register a tool handler for an action.
-        
+
         Args:
             action: Action name
             handler: Callable that implements the tool
@@ -190,10 +187,10 @@ class ToolRegistry:
     def get_tool(self, action: str) -> Any:
         """
         Get tool handler for an action.
-        
+
         Args:
             action: Action name
-            
+
         Returns:
             Tool handler or None
         """
@@ -202,7 +199,7 @@ class ToolRegistry:
     def list_tools(self) -> list:
         """
         Get list of registered tools.
-        
+
         Returns:
             List of action names
         """

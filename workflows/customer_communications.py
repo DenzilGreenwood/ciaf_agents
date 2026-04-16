@@ -33,7 +33,7 @@ from pathlib import Path
 import warnings
 import json
 
-warnings.filterwarnings('ignore', message='.*PLUGGABLE_AUTH.*')
+warnings.filterwarnings("ignore", message=".*PLUGGABLE_AUTH.*")
 
 # Setup imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -57,6 +57,7 @@ from ciaf_agents.execution import ToolExecutor
 @dataclass
 class CommunicationRequest:
     """Customer communication request."""
+
     message_id: str
     communication_type: str  # marketing, support, disclosure, legal
     recipient: str
@@ -77,17 +78,12 @@ class CustomerCommunicationsWorkflow:
         """Initialize the customer communications workflow."""
         self.iam_store = IAMStore()
         self.pam_store = PAMStore()
-        self.evidence_vault = EvidenceVault(
-            signing_secret="communications-key-2024"
-        )
-        self.policy_engine = PolicyEngine(
-            iam=self.iam_store,
-            pam=self.pam_store
-        )
+        self.evidence_vault = EvidenceVault(signing_secret="communications-key-2024")
+        self.policy_engine = PolicyEngine(iam=self.iam_store, pam=self.pam_store)
         self.executor = ToolExecutor(
             policy_engine=self.policy_engine,
             vault=self.evidence_vault,
-            pam=self.pam_store
+            pam=self.pam_store,
         )
         self._setup_roles_and_policies()
 
@@ -175,17 +171,17 @@ class CustomerCommunicationsWorkflow:
                 Permission(
                     action="draft_communication",
                     resource_type="communication",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="request_marketing_review",
                     resource_type="communication",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="request_support_review",
                     resource_type="communication",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -196,12 +192,12 @@ class CustomerCommunicationsWorkflow:
                 Permission(
                     action="approve_marketing",
                     resource_type="communication",
-                    conditions=no_financial_info
+                    conditions=no_financial_info,
                 ),
                 Permission(
                     action="request_compliance_review",
                     resource_type="communication",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -212,12 +208,12 @@ class CustomerCommunicationsWorkflow:
                 Permission(
                     action="approve_support",
                     resource_type="communication",
-                    conditions=no_legal_terms
+                    conditions=no_legal_terms,
                 ),
                 Permission(
                     action="escalate_to_legal",
                     resource_type="communication",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -228,12 +224,12 @@ class CustomerCommunicationsWorkflow:
                 Permission(
                     action="compliance_review",
                     resource_type="communication",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="block_communication",
                     resource_type="communication",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -244,12 +240,12 @@ class CustomerCommunicationsWorkflow:
                 Permission(
                     action="legal_review",
                     resource_type="communication",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
                 Permission(
                     action="approve_legal_communication",
                     resource_type="communication",
-                    conditions=standard_tenant
+                    conditions=standard_tenant,
                 ),
             ],
         )
@@ -267,10 +263,7 @@ class CustomerCommunicationsWorkflow:
         self.iam_store.add_identity(self.compliance_officer)
         self.iam_store.add_identity(self.general_counsel)
 
-    def send_communication(
-        self,
-        request: CommunicationRequest
-    ) -> Dict[str, Any]:
+    def send_communication(self, request: CommunicationRequest) -> Dict[str, Any]:
         """
         Send customer communication with policy enforcement.
 
@@ -300,7 +293,9 @@ class CustomerCommunicationsWorkflow:
         print("\n→ IDENTITY PLANE: Communication Agent")
         print(f"  Principal: {self.comms_agent.principal_id}")
         print(f"  Display: {self.comms_agent.display_name}")
-        print(f"  Direct Send Authority: {self.comms_agent.attributes['can_send_direct']}")
+        print(
+            f"  Direct Send Authority: {self.comms_agent.attributes['can_send_direct']}"
+        )
 
         # POLICY PLANE: Content policy evaluation
         print("\n→ POLICY PLANE: Content Policy Evaluation")
@@ -346,7 +341,9 @@ class CustomerCommunicationsWorkflow:
 
         decision = {
             "message_id": request.message_id,
-            "status": "APPROVED" if all(a["approved"] for a in approvals) else "BLOCKED",
+            "status": (
+                "APPROVED" if all(a["approved"] for a in approvals) else "BLOCKED"
+            ),
             "communication_type": request.communication_type,
             "policy_violations": policy_violations,
             "approval_chain": approvals,
@@ -354,10 +351,7 @@ class CustomerCommunicationsWorkflow:
 
         return decision
 
-    def _check_policy_violations(
-        self,
-        request: CommunicationRequest
-    ) -> List[str]:
+    def _check_policy_violations(self, request: CommunicationRequest) -> List[str]:
         """Check for policy violations."""
         violations = []
 
@@ -383,14 +377,13 @@ class CustomerCommunicationsWorkflow:
         # Legal communication policies
         elif request.communication_type == "legal":
             if request.urgency == "immediate":
-                violations.append("Legal communications require standard review timeline")
+                violations.append(
+                    "Legal communications require standard review timeline"
+                )
 
         return violations
 
-    def _determine_approval_chain(
-        self,
-        request: CommunicationRequest
-    ) -> List[str]:
+    def _determine_approval_chain(self, request: CommunicationRequest) -> List[str]:
         """Determine approval chain based on communication type."""
         if request.communication_type == "marketing":
             chain = ["Marketing"]
@@ -413,57 +406,65 @@ class CustomerCommunicationsWorkflow:
         return ["Send"]
 
     def _execute_approval_chain(
-        self,
-        chain: List[str],
-        request: CommunicationRequest
+        self, chain: List[str], request: CommunicationRequest
     ) -> List[Dict[str, Any]]:
         """Simulate approval chain execution."""
         approvals = []
 
         for i, approver_type in enumerate(chain):
             if approver_type == "Send":
-                approvals.append({
-                    "stage": "Send",
-                    "approved": True,
-                    "timestamp": f"2024-04-15T16:{30+i}:00Z",
-                    "action": "communication_sent",
-                })
+                approvals.append(
+                    {
+                        "stage": "Send",
+                        "approved": True,
+                        "timestamp": f"2024-04-15T16:{30+i}:00Z",
+                        "action": "communication_sent",
+                    }
+                )
             elif approver_type == "Marketing":
-                approvals.append({
-                    "stage": "Marketing",
-                    "principal": self.marketing_manager.principal_id,
-                    "approver_name": self.marketing_manager.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T16:{30+i}:00Z",
-                    "signature": f"sig_{request.message_id}_marketing",
-                })
+                approvals.append(
+                    {
+                        "stage": "Marketing",
+                        "principal": self.marketing_manager.principal_id,
+                        "approver_name": self.marketing_manager.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T16:{30+i}:00Z",
+                        "signature": f"sig_{request.message_id}_marketing",
+                    }
+                )
             elif approver_type == "Support":
-                approvals.append({
-                    "stage": "Support",
-                    "principal": self.support_lead.principal_id,
-                    "approver_name": self.support_lead.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T16:{30+i}:00Z",
-                    "signature": f"sig_{request.message_id}_support",
-                })
+                approvals.append(
+                    {
+                        "stage": "Support",
+                        "principal": self.support_lead.principal_id,
+                        "approver_name": self.support_lead.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T16:{30+i}:00Z",
+                        "signature": f"sig_{request.message_id}_support",
+                    }
+                )
             elif approver_type == "Compliance":
-                approvals.append({
-                    "stage": "Compliance",
-                    "principal": self.compliance_officer.principal_id,
-                    "approver_name": self.compliance_officer.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T16:{30+i}:00Z",
-                    "signature": f"sig_{request.message_id}_compliance",
-                })
+                approvals.append(
+                    {
+                        "stage": "Compliance",
+                        "principal": self.compliance_officer.principal_id,
+                        "approver_name": self.compliance_officer.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T16:{30+i}:00Z",
+                        "signature": f"sig_{request.message_id}_compliance",
+                    }
+                )
             elif approver_type in ["Legal", "Counsel", "Counsel.Review"]:
-                approvals.append({
-                    "stage": "Counsel",
-                    "principal": self.general_counsel.principal_id,
-                    "approver_name": self.general_counsel.display_name,
-                    "approved": True,
-                    "timestamp": f"2024-04-15T16:{30+i}:00Z",
-                    "signature": f"sig_{request.message_id}_counsel",
-                })
+                approvals.append(
+                    {
+                        "stage": "Counsel",
+                        "principal": self.general_counsel.principal_id,
+                        "approver_name": self.general_counsel.display_name,
+                        "approved": True,
+                        "timestamp": f"2024-04-15T16:{30+i}:00Z",
+                        "signature": f"sig_{request.message_id}_counsel",
+                    }
+                )
 
         return approvals
 
@@ -471,6 +472,7 @@ class CustomerCommunicationsWorkflow:
 # ============================================================================
 # ADK AGENT CREATION
 # ============================================================================
+
 
 def create_customer_communications_agent() -> Agent:
     """Create ADK agent for customer communication governance."""
@@ -502,8 +504,12 @@ def create_customer_communications_agent() -> Agent:
             content=content,
             sender="comms_agent",
             priority="normal",
-            includes_financial_info=("price" in content.lower() or "cost" in content.lower()),
-            includes_legal_terms=("agreement" in content.lower() or "terms" in content.lower()),
+            includes_financial_info=(
+                "price" in content.lower() or "cost" in content.lower()
+            ),
+            includes_legal_terms=(
+                "agreement" in content.lower() or "terms" in content.lower()
+            ),
         )
         result = agent_instance.send_communication(communication)
         return json.dumps(result, indent=2)
@@ -552,6 +558,7 @@ root_agent = create_customer_communications_agent()
 # ============================================================================
 # MAIN: RUN WORKFLOW
 # ============================================================================
+
 
 def main():
     """Run customer communications workflow demonstration."""

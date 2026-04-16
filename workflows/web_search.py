@@ -31,7 +31,7 @@ import warnings
 import json
 from enum import Enum
 
-warnings.filterwarnings('ignore', message='.*PLUGGABLE_AUTH.*')
+warnings.filterwarnings("ignore", message=".*PLUGGABLE_AUTH.*")
 
 # Setup imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -55,16 +55,18 @@ from ciaf_agents.execution import ToolExecutor
 
 class SearchCategory(Enum):
     """Search content categories."""
-    PUBLIC = "public"               # Unrestricted
-    GENERAL = "general"             # Standard safe search
-    ACADEMIC = "academic"           # Research/educational
-    RESTRICTED = "restricted"       # Requires approval
-    SENSITIVE = "sensitive"         # High compliance oversight
+
+    PUBLIC = "public"  # Unrestricted
+    GENERAL = "general"  # Standard safe search
+    ACADEMIC = "academic"  # Research/educational
+    RESTRICTED = "restricted"  # Requires approval
+    SENSITIVE = "sensitive"  # High compliance oversight
 
 
 @dataclass
 class SearchQuery:
     """Internet search query."""
+
     query_id: str
     search_term: str
     category: SearchCategory
@@ -83,17 +85,12 @@ class WebSearchAgent:
         """Initialize the web search agent."""
         self.iam_store = IAMStore()
         self.pam_store = PAMStore()
-        self.evidence_vault = EvidenceVault(
-            signing_secret="web-search-key-2024"
-        )
-        self.policy_engine = PolicyEngine(
-            iam=self.iam_store,
-            pam=self.pam_store
-        )
+        self.evidence_vault = EvidenceVault(signing_secret="web-search-key-2024")
+        self.policy_engine = PolicyEngine(iam=self.iam_store, pam=self.pam_store)
         self.executor = ToolExecutor(
             policy_engine=self.policy_engine,
             vault=self.evidence_vault,
-            pam=self.pam_store
+            pam=self.pam_store,
         )
         self._setup_roles_and_policies()
 
@@ -145,8 +142,10 @@ class WebSearchAgent:
 
         def category_check(allowed_categories):
             """Factory: Create condition for search category."""
+
             def check(ctx):
                 return ctx.get("category") in allowed_categories
+
             return check
 
         # Roles with permissions
@@ -156,20 +155,22 @@ class WebSearchAgent:
                 Permission(
                     action="search_web",
                     resource_type="search",
-                    conditions=category_check([
-                        SearchCategory.PUBLIC.value,
-                        SearchCategory.GENERAL.value,
-                    ])
+                    conditions=category_check(
+                        [
+                            SearchCategory.PUBLIC.value,
+                            SearchCategory.GENERAL.value,
+                        ]
+                    ),
                 ),
                 Permission(
                     action="request_content_review",
                     resource_type="search",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
                 Permission(
                     action="apply_safe_search",
                     resource_type="search",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
             ],
         )
@@ -180,17 +181,17 @@ class WebSearchAgent:
                 Permission(
                     action="review_restricted_search",
                     resource_type="search",
-                    conditions=category_check([SearchCategory.RESTRICTED.value])
+                    conditions=category_check([SearchCategory.RESTRICTED.value]),
                 ),
                 Permission(
                     action="approve_search",
                     resource_type="search",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
                 Permission(
                     action="deny_search",
                     resource_type="search",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
             ],
         )
@@ -201,17 +202,17 @@ class WebSearchAgent:
                 Permission(
                     action="review_sensitive_search",
                     resource_type="search",
-                    conditions=category_check([SearchCategory.SENSITIVE.value])
+                    conditions=category_check([SearchCategory.SENSITIVE.value]),
                 ),
                 Permission(
                     action="override_restrictions",
                     resource_type="search",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
                 Permission(
                     action="audit_searches",
                     resource_type="search",
-                    conditions=standard_tenant_check
+                    conditions=standard_tenant_check,
                 ),
             ],
         )
@@ -244,7 +245,9 @@ class WebSearchAgent:
         print(f"  Principal: {self.search_agent.principal_id}")
         print(f"  Display: {self.search_agent.display_name}")
         print(f"  Roles: {self.search_agent.roles}")
-        print(f"  Safe Search: {self.search_agent.attributes.get('safe_search_default')}")
+        print(
+            f"  Safe Search: {self.search_agent.attributes.get('safe_search_default')}"
+        )
 
         # POLICY PLANE: Category-based routing
         print("\n→ POLICY PLANE: Search Routing Decision")
@@ -282,13 +285,17 @@ class WebSearchAgent:
             print(f"  → Required approvers: {', '.join(approvers)}")
             print(f"  → Reason: Content review and compliance oversight needed")
         else:
-            print(f"  ✓ Within agent authority (standard {query.category.value} search)")
+            print(
+                f"  ✓ Within agent authority (standard {query.category.value} search)"
+            )
 
         # EXECUTION PLANE: Simulate search execution
         print("\n→ EXECUTION PLANE: Search Mediation")
         print(f"  Action: {routing}")
         print(f"  Safe Search: {query.safe_search}")
-        print(f"  Adult Content: {'Allowed' if query.include_adult_content else 'Blocked'}")
+        print(
+            f"  Adult Content: {'Allowed' if query.include_adult_content else 'Blocked'}"
+        )
 
         search_result = self._execute_search(query, routing)
 
@@ -326,11 +333,13 @@ class WebSearchAgent:
             "SAFE_SEARCH": 500,
             "ACADEMIC_SEARCH": 250,
             "RESTRICTED_REVIEW": 0,  # Awaiting review
-            "SENSITIVE_REVIEW": 0,   # Awaiting compliance
+            "SENSITIVE_REVIEW": 0,  # Awaiting compliance
         }
 
         return {
-            "status": "COMPLETED" if result_counts.get(routing, 0) > 0 else "PENDING_REVIEW",
+            "status": (
+                "COMPLETED" if result_counts.get(routing, 0) > 0 else "PENDING_REVIEW"
+            ),
             "results_count": result_counts.get(routing, 0),
             "filtered": query.safe_search,
             "scope": query.search_scope,
@@ -340,6 +349,7 @@ class WebSearchAgent:
 # ============================================================================
 # ADK AGENT CREATION
 # ============================================================================
+
 
 def create_web_search_agent() -> Agent:
     """Create ADK agent for web search with content governance."""
@@ -440,6 +450,7 @@ root_agent = create_web_search_agent()
 # ============================================================================
 # MAIN: RUN AGENT DEMONSTRATION
 # ============================================================================
+
 
 def main():
     """Run web search agent demonstration."""

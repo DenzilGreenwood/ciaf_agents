@@ -14,24 +14,24 @@ from ciaf_agents.pam.store import PAMStore
 class PolicyEngine:
     """
     Central policy evaluation engine.
-    
+
     The Policy Engine implements multi-layered decision logic:
     1. IAM permission checking (RBAC/ABAC)
     2. Boundary policy enforcement (tenant isolation, allowlists)
     3. Sensitivity detection (requires PAM elevation)
     4. Runtime constraint evaluation
     """
-    
+
     def __init__(
         self,
         iam: IAMStore,
         pam: PAMStore,
         sensitive_actions: Optional[Set[str]] = None,
-        privileged_actions: Optional[Set[str]] = None
+        privileged_actions: Optional[Set[str]] = None,
     ) -> None:
         """
         Initialize policy engine.
-        
+
         Args:
             iam: IAM store for identity and permission resolution
             pam: PAM store for elevation grant lookup
@@ -40,14 +40,14 @@ class PolicyEngine:
         """
         self.iam = iam
         self.pam = pam
-        
+
         # Combine sensitive and privileged actions
         self.sensitive_actions: Set[str] = set()
         if sensitive_actions:
             self.sensitive_actions.update(sensitive_actions)
         if privileged_actions:
             self.sensitive_actions.update(privileged_actions)
-        
+
         # Default sensitive actions if none specified
         if not self.sensitive_actions:
             self.sensitive_actions = {
@@ -62,16 +62,16 @@ class PolicyEngine:
     def evaluate(self, request: ActionRequest) -> PolicyDecision:
         """
         Evaluate whether an action request should be allowed.
-        
+
         Decision flow:
         1. Check IAM permissions (RBAC/ABAC)
         2. Enforce boundary policies (tenant, allowlists)
         3. Check for sensitive actions requiring PAM
         4. Apply runtime constraints (thresholds, business hours)
-        
+
         Args:
             request: The action request to evaluate
-            
+
         Returns:
             Policy decision with allow/deny and any obligations
         """
@@ -84,7 +84,9 @@ class PolicyEngine:
         has_base_permission = False
 
         for role_name, permission in self.iam.get_identity_permissions(identity):
-            if permission.action == request.action and permission.matches(identity, resource, params):
+            if permission.action == request.action and permission.matches(
+                identity, resource, params
+            ):
                 has_base_permission = True
                 matched_role = role_name
                 break
@@ -114,7 +116,7 @@ class PolicyEngine:
             grant = self.pam.find_active_grant(
                 principal_id=identity.principal_id,
                 action=request.action,
-                resource_type=resource.resource_type
+                resource_type=resource.resource_type,
             )
             if not grant:
                 return PolicyDecision(
@@ -122,12 +124,16 @@ class PolicyEngine:
                     requires_elevation=True,
                     reason="PAM elevation required for sensitive action.",
                     matched_role=matched_role,
-                    obligations=["human_approval", "jit_elevation", "heightened_logging"],
+                    obligations=[
+                        "human_approval",
+                        "jit_elevation",
+                        "heightened_logging",
+                    ],
                 )
             obligations.extend(["pam_session_attached", "heightened_logging"])
 
         # Step 4: Action-specific runtime constraints
-        
+
         # Payment threshold check
         if request.action == "approve_payment":
             amount = float(params.get("amount", 0))
@@ -135,7 +141,7 @@ class PolicyEngine:
                 grant = self.pam.find_active_grant(
                     principal_id=identity.principal_id,
                     action=request.action,
-                    resource_type=resource.resource_type
+                    resource_type=resource.resource_type,
                 )
                 if not grant:
                     return PolicyDecision(
@@ -152,7 +158,9 @@ class PolicyEngine:
             to_address = str(params.get("to", ""))
             if "@" in to_address:
                 to_domain = to_address.split("@")[-1].lower()
-                allowed_domains = set(identity.attributes.get("allowed_email_domains", []))
+                allowed_domains = set(
+                    identity.attributes.get("allowed_email_domains", [])
+                )
                 if to_domain not in allowed_domains:
                     return PolicyDecision(
                         allowed=False,
@@ -173,7 +181,7 @@ class PolicyEngine:
     def add_sensitive_action(self, action: str) -> None:
         """
         Register an action as sensitive (requires PAM elevation).
-        
+
         Args:
             action: Action name to mark as sensitive
         """
@@ -182,7 +190,7 @@ class PolicyEngine:
     def remove_sensitive_action(self, action: str) -> None:
         """
         Remove an action from the sensitive list.
-        
+
         Args:
             action: Action name to remove
         """
@@ -191,10 +199,10 @@ class PolicyEngine:
     def is_sensitive_action(self, action: str) -> bool:
         """
         Check if an action is marked as sensitive.
-        
+
         Args:
             action: Action name to check
-            
+
         Returns:
             True if action is sensitive
         """

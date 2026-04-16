@@ -31,7 +31,7 @@ from ciaf_agents.execution import ToolExecutor
 def build_demo_system():
     """
     Build a complete demo system with IAM, PAM, Policy, Evidence, and Execution.
-    
+
     Returns:
         Tuple of (iam_store, pam_store, evidence_vault, tool_executor)
     """
@@ -49,12 +49,12 @@ def build_demo_system():
             Permission(
                 action="read_record",
                 resource_type="patient_record",
-                conditions=same_department_only
+                conditions=same_department_only,
             ),
             Permission(
                 action="send_external_email",
                 resource_type="email",
-                conditions=any_condition
+                conditions=any_condition,
             ),
         ],
     )
@@ -65,7 +65,7 @@ def build_demo_system():
             Permission(
                 action="approve_payment",
                 resource_type="payment",
-                conditions=any_condition
+                conditions=any_condition,
             ),
         ],
     )
@@ -76,7 +76,7 @@ def build_demo_system():
             Permission(
                 action="modify_prod_config",
                 resource_type="config",
-                conditions=any_condition
+                conditions=any_condition,
             ),
         ],
     )
@@ -241,18 +241,20 @@ def run_demo():
     print("Receipt Summary:")
     print("-" * 80)
     for i, receipt in enumerate(vault.receipts, 1):
-        print(f"{i}. {receipt.timestamp.isoformat()} | "
-              f"{receipt.principal_id} | "
-              f"{receipt.action} | "
-              f"Decision: {receipt.decision} | "
-              f"Grant: {receipt.elevation_grant_id or 'N/A'}")
+        print(
+            f"{i}. {receipt.timestamp.isoformat()} | "
+            f"{receipt.principal_id} | "
+            f"{receipt.action} | "
+            f"Decision: {receipt.decision} | "
+            f"Grant: {receipt.elevation_grant_id or 'N/A'}"
+        )
     print()
 
     # Audit queries
     print("=" * 80)
     print("Audit Queries")
     print("=" * 80)
-    
+
     denied_receipts = vault.get_denied_receipts()
     print(f"Denied Actions: {len(denied_receipts)}")
     for receipt in denied_receipts:
@@ -262,8 +264,10 @@ def run_demo():
     elevated_receipts = vault.get_elevated_receipts()
     print(f"Elevated Actions: {len(elevated_receipts)}")
     for receipt in elevated_receipts:
-        print(f"  - {receipt.action} by {receipt.principal_id} "
-              f"(Grant: {receipt.elevation_grant_id}, Approver: {receipt.approved_by})")
+        print(
+            f"  - {receipt.action} by {receipt.principal_id} "
+            f"(Grant: {receipt.elevation_grant_id}, Approver: {receipt.approved_by})"
+        )
     print()
 
     print("=" * 80)
