@@ -1,0 +1,85 @@
+{
+  "test_config": {
+    "total_interactions": 1000000,
+    "num_workers": 16,
+    "timestamp": "2026-04-17T14:51:37.373701"
+  },
+  "tests": {
+    "sequential": {
+      "test_type": "sequential",
+      "total_actions": 1000000,
+      "success_count": 1000000,
+      "failure_count": 0,
+      "total_duration_seconds": 26.87643129999924,
+      "throughput_actions_per_sec": 37207.320750207946,
+      "success_rate_percent": 100.0,
+      "latency_stats": {
+        "mean_ms": 0.023977769693985466,
+        "median_ms": 0.021199986804276705,
+        "stdev_ms": 0.2599085066901697,
+        "min_ms": 0.018999999156221747,
+        "max_ms": 169.45359999954235,
+        "p50_ms": 0.021199986804276705,
+        "p95_ms": 0.040799990529194474,
+        "p99_ms": 0.05230000533629209
+      },
+      "memory_stats": {
+        "start_mb": 25.43359375,
+        "peak_mb": 916.8203125,
+        "end_mb": 916.8203125,
+        "delta_mb": 891.38671875
+      }
+    },
+    "concurrent": {
+      "test_type": "concurrent",
+      "total_actions": 1000000,
+      "num_workers": 16,
+      "success_count": 1000000,
+      "failure_count": 0,
+      "total_duration_seconds": 27.434890799995628,
+      "throughput_actions_per_sec": 36449.93549601296,
+      "success_rate_percent": 100.0,
+      "latency_stats": {
+        "mean_ms": 0.29464165440578655,
+        "median_ms": 0.0219999928958714,
+        "stdev_ms": 11.312757381819146,
+        "min_ms": 0.018799997633323073,
+        "max_ms": 2190.606799995294,
+        "p50_ms": 0.0219999928958714,
+        "p95_ms": 0.03339999238960445,
+        "p99_ms": 0.05080000846646726
+      },
+      "memory_stats": {
+        "start_mb": 909.12890625,
+        "peak_mb": 1998.67578125,
+        "end_mb": 1998.3671875,
+        "delta_mb": 1089.23828125
+      }
+    },
+    "evidence_vault": {
+      "test_type": "evidence_vault",
+      "total_receipts": 1000000,
+      "success_count": 1000000,
+      "failure_count": 0,
+      "vault_stats": {
+        "total_receipts_stored": 3000000,
+        "estimated_storage_mb": 2275.6261234283447
+      },
+      "total_duration_seconds": 26.61131549999118,
+      "throughput_actions_per_sec": 37577.99947921896,
+      "success_rate_percent": 100.0,
+      "latency_stats": {
+        "mean_ms": 0.023769020497915336,
+        "median_ms": 0.022199994418770075,
+        "p95_ms": 0.02649999805726111,
+        "p99_ms": 0.048600006266497076
+      },
+      "memory_stats": {
+        "start_mb": 1978.59765625,
+        "peak_mb": 2623.5390625,
+        "end_mb": 2623.5390625,
+        "delta_mb": 644.94140625
+      }
+    }
+  }
+}

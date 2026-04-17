@@ -1,0 +1,597 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/vault.schema.json",
+  "title": "CIAF Vault Storage Schema",
+  "description": "Schema defining the structure for CIAF vault storage including metadata, receipts, training snapshots, and compliance events",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "watermarked_artifact": {
+      "type": "object",
+      "description": "Forensic provenance record for watermarked AI artifact",
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "description": "Unique artifact identifier (UUID)"
+        },
+        "artifact_type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "image",
+            "pdf",
+            "json",
+            "binary",
+            "video",
+            "audio"
+          ],
+          "description": "Type of AI-generated artifact"
+        },
+        "mime_type": {
+          "type": "string",
+          "description": "MIME type of artifact"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of creation"
+        },
+        "model_id": {
+          "type": "string",
+          "description": "Model identifier"
+        },
+        "model_version": {
+          "type": "string",
+          "description": "Model version"
+        },
+        "actor_id": {
+          "type": "string",
+          "description": "User/system that generated artifact"
+        },
+        "prompt_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "SHA-256 hash of input prompt"
+        },
+        "output_hash_raw": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "SHA-256 hash of original (pre-watermark) output"
+        },
+        "output_hash_distributed": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "SHA-256 hash of watermarked output"
+        },
+        "watermark": {
+          "type": "object",
+          "description": "Watermark descriptor",
+          "properties": {
+            "watermark_id": {
+              "type": "string",
+              "description": "Unique watermark identifier"
+            },
+            "watermark_type": {
+              "type": "string",
+              "enum": [
+                "none",
+                "visible",
+                "metadata",
+                "embedded",
+                "hybrid",
+                "qr_code"
+              ],
+              "description": "Watermarking technique"
+            },
+            "tag_text": {
+              "type": "string",
+              "description": "Human-readable watermark text"
+            },
+            "verification_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL for online verification"
+            },
+            "embed_method": {
+              "type": "string",
+              "description": "Technical embedding method"
+            },
+            "removal_resistance": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ],
+              "description": "Resistance to watermark removal"
+            }
+          },
+          "required": [
+            "watermark_id",
+            "watermark_type"
+          ]
+        },
+        "hashes": {
+          "type": "object",
+          "description": "Dual-state hash set for forensic matching",
+          "properties": {
+            "content_hash_before_watermark": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$",
+              "description": "SHA-256 of pre-watermark content"
+            },
+            "content_hash_after_watermark": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$",
+              "description": "SHA-256 of post-watermark content"
+            },
+            "canonical_receipt_hash": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$",
+              "description": "SHA-256 of canonical receipt bytes"
+            },
+            "normalized_hash_before": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$",
+              "description": "Normalized hash (format-resilient)"
+            },
+            "normalized_hash_after": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$",
+              "description": "Normalized hash of watermarked"
+            },
+            "simhash_before": {
+              "type": "string",
+              "description": "SimHash fingerprint (pre-watermark)"
+            },
+            "simhash_after": {
+              "type": "string",
+              "description": "SimHash fingerprint (post-watermark)"
+            }
+          },
+          "required": [
+            "content_hash_before_watermark",
+            "content_hash_after_watermark"
+          ]
+        },
+        "fingerprints": {
+          "type": "array",
+          "description": "Similarity fingerprints for forensic matching",
+          "items": {
+            "type": "object",
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "description": "Fingerprinting algorithm"
+              },
+              "value": {
+                "type": "string",
+                "description": "Fingerprint value"
+              },
+              "role": {
+                "type": "string",
+                "description": "Fingerprint role"
+              }
+            },
+            "required": [
+              "algorithm",
+              "value",
+              "role"
+            ]
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "artifact_type",
+        "mime_type",
+        "created_at",
+        "model_id",
+        "model_version",
+        "actor_id",
+        "prompt_hash",
+        "output_hash_raw",
+        "output_hash_distributed",
+        "watermark",
+        "hashes"
+      ]
+    },
+    "metadata_record": {
+      "type": "object",
+      "description": "Metadata record for training/inference events",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique metadata identifier (UUID or hash)"
+        },
+        "model_name": {
+          "type": "string",
+          "description": "Name of the model"
+        },
+        "model_version": {
+          "type": "string",
+          "description": "Version of the model"
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "training",
+            "validation",
+            "testing",
+            "inference",
+            "deployment"
+          ],
+          "description": "Stage of the ML pipeline"
+        },
+        "event_type": {
+          "type": "string",
+          "description": "Type of event (e.g., epoch_complete, batch_complete, inference_complete)"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "metadata_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of metadata for integrity"
+        },
+        "details": {
+          "type": "string",
+          "description": "Human-readable details about the event"
+        },
+        "metadata_json": {
+          "type": "object",
+          "description": "Full metadata as JSON object"
+        }
+      },
+      "required": [
+        "id",
+        "model_name",
+        "stage",
+        "event_type",
+        "timestamp",
+        "metadata_json"
+      ]
+    },
+    "inference_receipt": {
+      "type": "object",
+      "description": "Cryptographic receipt for AI inference",
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "description": "Unique receipt identifier"
+        },
+        "model_name": {
+          "type": "string",
+          "description": "Name of the model"
+        },
+        "model_version": {
+          "type": "string",
+          "description": "Version of the model"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "query_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "SHA-256 hash of the input query"
+        },
+        "output_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "SHA-256 hash of the output"
+        },
+        "model_fingerprint": {
+          "type": "string",
+          "description": "Cryptographic fingerprint of the model"
+        },
+        "receipt_signature": {
+          "type": "string",
+          "description": "Digital signature of the receipt"
+        },
+        "connections": {
+          "type": "object",
+          "description": "Zero-Knowledge Evidence connections",
+          "properties": {
+            "prev_receipt_hash": {
+              "type": "string",
+              "description": "Hash of previous receipt in chain"
+            },
+            "chain_index": {
+              "type": "integer",
+              "description": "Position in receipt chain"
+            }
+          }
+        },
+        "receipt_data": {
+          "type": "object",
+          "description": "Full receipt data"
+        }
+      },
+      "required": [
+        "receipt_id",
+        "model_name",
+        "timestamp",
+        "query_hash",
+        "output_hash",
+        "receipt_data"
+      ]
+    },
+    "training_snapshot": {
+      "type": "object",
+      "description": "Training snapshot record",
+      "properties": {
+        "snapshot_id": {
+          "type": "string",
+          "description": "Unique snapshot identifier"
+        },
+        "model_name": {
+          "type": "string",
+          "description": "Name of the model"
+        },
+        "epoch": {
+          "type": "integer",
+          "description": "Training epoch number"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Training metrics (loss, accuracy, etc.)",
+          "properties": {
+            "loss": {
+              "type": "number"
+            },
+            "accuracy": {
+              "type": "number"
+            },
+            "val_loss": {
+              "type": "number"
+            },
+            "val_accuracy": {
+              "type": "number"
+            }
+          }
+        },
+        "parameters_hash": {
+          "type": "string",
+          "description": "Hash of model parameters"
+        },
+        "architecture_hash": {
+          "type": "string",
+          "description": "Hash of model architecture"
+        },
+        "snapshot_data": {
+          "type": "object",
+          "description": "Full snapshot data"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "model_name",
+        "timestamp",
+        "snapshot_data"
+      ]
+    },
+    "compliance_event": {
+      "type": "object",
+      "description": "Regulatory compliance event",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "description": "Unique event identifier"
+        },
+        "framework": {
+          "type": "string",
+          "enum": [
+            "EU_AI_ACT",
+            "GDPR",
+            "HIPAA",
+            "NIST_AI_RMF",
+            "SOX",
+            "ISO_27001"
+          ],
+          "description": "Regulatory framework"
+        },
+        "requirement": {
+          "type": "string",
+          "description": "Specific requirement identifier"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "COMPLIANT",
+            "NON_COMPLIANT",
+            "PARTIAL",
+            "NOT_APPLICABLE",
+            "IN_PROGRESS"
+          ],
+          "description": "Compliance status"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "details": {
+          "type": "string",
+          "description": "Compliance details"
+        },
+        "evidence": {
+          "type": "object",
+          "description": "Supporting evidence for compliance"
+        }
+      },
+      "required": [
+        "event_id",
+        "framework",
+        "requirement",
+        "status",
+        "timestamp"
+      ]
+    },
+    "provenance_capsule": {
+      "type": "object",
+      "description": "Provenance capsule for data lineage",
+      "properties": {
+        "capsule_id": {
+          "type": "string",
+          "description": "Unique capsule identifier"
+        },
+        "dataset_id": {
+          "type": "string",
+          "description": "Dataset identifier"
+        },
+        "data_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "SHA-256 hash of original data"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "encrypted_data": {
+          "type": "string",
+          "description": "AES-256-GCM encrypted data"
+        },
+        "nonce": {
+          "type": "string",
+          "description": "Encryption nonce"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Authentication tag"
+        },
+        "merkle_proof": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Merkle proof for data integrity"
+        },
+        "capsule_data": {
+          "type": "object",
+          "description": "Full capsule data"
+        }
+      },
+      "required": [
+        "capsule_id",
+        "dataset_id",
+        "data_hash",
+        "timestamp",
+        "capsule_data"
+      ]
+    },
+    "audit_trail_entry": {
+      "type": "object",
+      "description": "Audit trail entry",
+      "properties": {
+        "audit_id": {
+          "type": "string",
+          "description": "Unique audit entry identifier"
+        },
+        "parent_id": {
+          "type": "string",
+          "description": "Parent metadata/receipt ID"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action performed"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "user_id": {
+          "type": "string",
+          "description": "User/system performing action"
+        },
+        "details": {
+          "type": "string",
+          "description": "Audit details"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional audit metadata"
+        }
+      },
+      "required": [
+        "audit_id",
+        "action",
+        "timestamp"
+      ]
+    }
+  },
+  "properties": {
+    "vault_version": {
+      "$ref": "common/identifiers/semantic-version.json",
+      "description": "CIAF Vault schema version"
+    },
+    "watermarked_artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/watermarked_artifact"
+      },
+      "description": "Collection of watermarked AI artifacts"
+    },
+    "metadata_records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/metadata_record"
+      },
+      "description": "Collection of metadata records"
+    },
+    "inference_receipts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/inference_receipt"
+      },
+      "description": "Collection of inference receipts"
+    },
+    "training_snapshots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/training_snapshot"
+      },
+      "description": "Collection of training snapshots"
+    },
+    "compliance_events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/compliance_event"
+      },
+      "description": "Collection of compliance events"
+    },
+    "provenance_capsules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/provenance_capsule"
+      },
+      "description": "Collection of provenance capsules"
+    },
+    "audit_trail": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/audit_trail_entry"
+      },
+      "description": "Complete audit trail"
+    }
+  },
+  "required": [
+    "vault_version"
+  ]
+}

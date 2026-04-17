@@ -8,7 +8,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Future enhancements and improvements
+
+**Performance & Scalability Testing**
+- Comprehensive load test runner (`load_test_runner.py`) for benchmarking million-scale interactions
+- Multi-mode testing: sequential, concurrent (16 workers), and evidence vault modes
+- Performance metrics collection (throughput, latency percentiles, memory profiling)
+- Memory analysis during sustained operations
+- Storage size estimation for evidence vault (`EvidenceVault.estimate_storage_size()` method)
+- Load test results: 40.6k actions/sec (sequential), 38.6k actions/sec (concurrent), 100% success rate
+- Detailed memory profiling and analysis documentation (MEMORY_USAGE_ANALYSIS.md)
+
+**JSON Schema Definitions**
+- 12 comprehensive JSON Schema files for CIAF governance:
+  - Agent definitions with capabilities and boundaries
+  - Action requests and execution results
+  - Policy decisions and evaluation outcomes
+  - Identity, resource, permission, and role schemas
+  - PAM elevation grant schemas
+  - Evidence receipt schemas with cryptographic chaining
+  - Policy configuration schema combining all subsystems
+  - Vault and watermark schemas
+- Complete schema documentation with examples and validation guidance
+- SCHEMA_SUMMARY.md documenting all 12 schemas and their relationships
+
+**Documentation Enhancements**
+- Architectural analysis documentation with comprehensive design breakdown
+- Architecture visual guide with ASCII diagrams and component relationships
+- ADK quick reference guide for integrating CIAF with ADK framework
+- Practical integration guide with step-by-step examples
+- Expanded schema documentation with Python/JavaScript validation examples
+- Memory usage analysis methodology and interpretation guidance
+
+**Evidence Vault Enhancements**
+- Added `estimate_storage_size()` method for storage capacity planning
+- Enhanced vault with per-receipt size calculation capabilities
+- Support for streaming storage size estimates across large datasets
+
+### Fixed
+- Evidence Vault missing method AttributeError (added `estimate_storage_size()`)
+- Improved receipt storage estimation accuracy and methodology
+- Enhanced documentation accuracy to reflect actual implementation
+
+### Verified
+- Load test 1M interactions: 100% success rate across all three test modes
+- Sequential performance: 40,618 actions/sec with 0.0205ms median latency
+- Concurrent performance: 38,642 actions/sec with 0.0207ms median latency
+- Evidence vault: 3M receipts stored with ~0.76 KB per receipt
+- p99 latency consistently under 0.06ms across all test modes
+- Receipt chaining integrity: hash linkage verified across full dataset
+
+### Performance Results
+- **Throughput**: 38,642–40,618 actions/sec (concurrent to sequential)
+- **Median Latency**: 0.020–0.021 ms (excellent for governance operations)
+- **p99 Latency**: 0.037–0.057 ms (sub-millisecond performance)
+- **Success Rate**: 100% across sequential, concurrent, and vault test modes
+- **Memory Growth**: 893–1088 MB for 1M operations (expected for in-memory vault)
+- **Storage Efficiency**: ~0.76 KB per receipt, 2275.6 MB for 3M receipts
+
+### Known Limitations & Future Investigation
+- Concurrent execution not materially faster than sequential (Python GIL contention likely)
+- Rare latency spikes to 169–2191ms suggest GC pauses or lock contention under high concurrency
+- Memory growth assessment requires 10M scale test to determine if linear or sublinear
+- Durability-on testing needed (currently in-memory; streaming to disk would reduce peak memory)
+
+### Next Steps (Future Releases)
+- 10M scale test to validate memory growth linearity
+- 30–60 minute soak test to measure drift in throughput/memory/latency
+- Durability-on benchmark with persistent writes and I/O metrics
+- Concurrency analysis (lock wait time, queue depth, per-worker throughput breakdown)
+- Bounded-memory mode with streaming writes and batch flushes
+
+### Technical Details
+- Standalone load test runner with configurable interactions and workers
+- Memory sampling and peak tracking throughout test execution
+- Latency percentile analysis (p50, p95, p99, min, max)
+- Evidence receipt generation included in throughput measurements
+- All CIAF control planes active during testing (IAM, PAM, Policy, Evidence, Execution)
+- 12 comprehensive JSON schemas covering all CIAF governance models
+- Full compliance with JSON Schema Draft 7 specification
 
 ## [1.1.0] - 2026-04-15
 
@@ -215,21 +292,30 @@ None - This is the first production release.
 
 ## Future Roadmap
 
-### Planned for 1.1.0
-- Persistent storage backends (database, S3, Azure Blob)
-- Policy decision caching for performance
-- GraphQL API for evidence queries
-- Real-time monitoring and alerting integration
-- Approval workflow automation
-- Webhook support for grant issuance
+### In Progress (Post-1.1.0)
+- 10M scale load testing to validate linear memory growth
+- Long-running (30-60 min) soak tests for production readiness assessment
+- Durability-on benchmarking with persistent storage backends
+- Concurrency bottleneck analysis and optimization
+- Bounded-memory mode implementation
 
 ### Planned for 1.2.0
+- Persistent storage backends (database, S3, Azure Blob)
+- Policy decision caching for performance
+- Streaming evidence vault writes for bounded memory
+- GraphQL API for evidence queries
+- Real-time monitoring and alerting integration
 - Multi-signature approval support
 - Time-of-day and day-of-week constraints
 - Geolocation-based access controls
-- API rate limiting integration
-- Break-glass emergency access
+
+### Planned for 1.3.0
+- Break-glass emergency access procedures
 - Automated policy testing framework
+- API rate limiting integration
+- Advanced audit trail visualization
+- Compliance reporting dashboards
+- Webhook support for grant issuance
 
 ### Planned for 2.0.0
 - Distributed evidence vault with consensus
@@ -238,6 +324,7 @@ None - This is the first production release.
 - Machine learning for anomaly detection
 - Natural language policy definitions
 - Visual policy builder UI
+- Advanced breach detection and response
 
 ---
 

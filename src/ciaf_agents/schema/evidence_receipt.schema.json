@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/evidence_receipt.schema.json",
+  "title": "CIAF Evidence Receipt Schema",
+  "description": "Schema for tamper-evident receipts in the Evidence Vault - cryptographically signed audit trail records",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "evidence_receipt": {
+      "type": "object",
+      "description": "Cryptographically signed, chained receipt for governance evidence",
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "description": "Unique receipt identifier (UUID)"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of the recorded event"
+        },
+        "correlation_id": {
+          "type": "string",
+          "description": "Unique ID for tracking related requests"
+        },
+        "principal_id": {
+          "type": "string",
+          "description": "ID of the principal (agent, user, or service)"
+        },
+        "principal_type": {
+          "type": "string",
+          "enum": ["agent", "user", "service", "system"],
+          "description": "Type of principal"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action that was requested/executed"
+        },
+        "resource_id": {
+          "type": "string",
+          "description": "ID of the target resource"
+        },
+        "resource_type": {
+          "type": "string",
+          "description": "Type of the target resource"
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["allow", "deny"],
+          "description": "Policy decision outcome"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Explanation for the decision"
+        },
+        "elevation_grant_id": {
+          "type": "string",
+          "description": "Associated PAM elevation grant ID (if elevated)"
+        },
+        "approved_by": {
+          "type": "string",
+          "description": "ID of approver (if applicable)"
+        },
+        "params_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "SHA-256 hash of action parameters for integrity"
+        },
+        "policy_obligations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Policy obligations that were satisfied"
+        },
+        "prior_receipt_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "Hash of previous receipt for blockchain-style chaining"
+        },
+        "receipt_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "SHA-256 hash of this receipt's content"
+        },
+        "signature": {
+          "type": "string",
+          "description": "HMAC signature for tamper detection"
+        },
+        "signing_version": {
+          "type": "string",
+          "description": "Version of signing algorithm used (e.g., 'HMAC-SHA256-v1')"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional receipt metadata",
+          "properties": {
+            "environment": {
+              "type": "string",
+              "enum": ["dev", "staging", "production"],
+              "description": "Environment where action occurred"
+            },
+            "source_ip": {
+              "type": "string",
+              "description": "Source IP address"
+            },
+            "user_agent": {
+              "type": "string",
+              "description": "User agent if applicable"
+            },
+            "execution_time_ms": {
+              "type": "number",
+              "description": "Time taken to execute action"
+            },
+            "tenant_id": {
+              "type": "string",
+              "description": "Tenant ID for multi-tenancy"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "receipt_id",
+        "timestamp",
+        "correlation_id",
+        "principal_id",
+        "principal_type",
+        "action",
+        "resource_id",
+        "resource_type",
+        "decision",
+        "reason",
+        "params_hash",
+        "receipt_hash",
+        "signature"
+      ]
+    },
+    "receipt_chain": {
+      "type": "object",
+      "description": "Verification of receipt chain integrity",
+      "properties": {
+        "chain_id": {
+          "type": "string",
+          "description": "Identifier for this chain"
+        },
+        "first_receipt_id": {
+          "type": "string",
+          "description": "ID of the first receipt in the chain"
+        },
+        "last_receipt_id": {
+          "type": "string",
+          "description": "ID of the most recent receipt"
+        },
+        "total_receipts": {
+          "type": "integer",
+          "description": "Total receipts in this chain",
+          "minimum": 1
+        },
+        "chain_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "Hash representing the entire chain"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether chain integrity has been verified"
+        },
+        "verification_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When chain was last verified"
+        },
+        "verification_errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "receipt_id": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Any verification errors found"
+        }
+      },
+      "required": ["chain_id", "first_receipt_id", "total_receipts", "verified"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/evidence_receipt"
+    }
+  ]
+}

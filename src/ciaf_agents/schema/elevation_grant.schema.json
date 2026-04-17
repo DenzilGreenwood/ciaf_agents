@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/elevation_grant.schema.json",
+  "title": "CIAF PAM Elevation Grant Schema",
+  "description": "Schema for Privileged Access Management (PAM) elevation grants",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "elevation_grant": {
+      "type": "object",
+      "description": "Time-bound privilege elevation grant for sensitive actions",
+      "properties": {
+        "grant_id": {
+          "type": "string",
+          "description": "Unique grant identifier (UUID)"
+        },
+        "ticket_id": {
+          "type": "string",
+          "description": "Reference to approval ticket or case"
+        },
+        "principal_id": {
+          "type": "string",
+          "description": "ID of the principal receiving elevation"
+        },
+        "principal_type": {
+          "type": "string",
+          "enum": ["agent", "user", "service"],
+          "description": "Type of principal"
+        },
+        "principal_name": {
+          "type": "string",
+          "description": "Human-readable name of the principal"
+        },
+        "approved_by": {
+          "type": "string",
+          "description": "ID of the approver"
+        },
+        "approved_by_name": {
+          "type": "string",
+          "description": "Name of the approver"
+        },
+        "approval_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of approval"
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when grant was issued"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when grant expires"
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "description": "Duration of the grant in minutes",
+          "minimum": 1
+        },
+        "reason": {
+          "type": "string",
+          "description": "Business justification for the elevation"
+        },
+        "allowed_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Set of actions permitted under this grant"
+        },
+        "resource_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Set of resource types this grant applies to"
+        },
+        "restricted_resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Specific resource IDs this grant is restricted to (empty = all)"
+        },
+        "max_uses": {
+          "type": "integer",
+          "description": "Maximum number of times this grant can be used",
+          "minimum": 1
+        },
+        "uses_remaining": {
+          "type": "integer",
+          "description": "Number of uses remaining",
+          "minimum": 0
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "used", "revoked", "expired"],
+          "description": "Current grant status"
+        },
+        "conditions": {
+          "type": "object",
+          "description": "Additional conditions for grant usage",
+          "properties": {
+            "requires_mfa": {
+              "type": "boolean",
+              "description": "Whether multi-factor authentication is required"
+            },
+            "ip_whitelist": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Allowed IP addresses (CIDR notation)"
+            },
+            "session_requirement": {
+              "type": "string",
+              "description": "Session type requirement (e.g., 'interactive_only')"
+            },
+            "audit_level": {
+              "type": "string",
+              "enum": ["standard", "enhanced", "forensic"],
+              "description": "Audit logging level required"
+            }
+          }
+        },
+        "revocation": {
+          "type": "object",
+          "description": "Revocation details if grant was revoked",
+          "properties": {
+            "revoked_by": {
+              "type": "string",
+              "description": "ID of person who revoked"
+            },
+            "revoked_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When revocation occurred"
+            },
+            "revocation_reason": {
+              "type": "string",
+              "description": "Reason for revocation"
+            }
+          }
+        },
+        "audit_trail": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "event": {
+                "type": "string",
+                "description": "Event type (issued, used, expired, revoked)"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "details": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Audit trail of grant lifecycle events"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata",
+          "additionalProperties": true
+        }
+      },
+      "required": ["grant_id", "ticket_id", "principal_id", "approved_by", "expires_at", "reason", "allowed_actions", "resource_types"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/elevation_grant"
+    }
+  ]
+}

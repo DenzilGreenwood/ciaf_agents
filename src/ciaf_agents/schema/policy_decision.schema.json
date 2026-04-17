@@ -1,0 +1,120 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/policy_decision.schema.json",
+  "title": "CIAF Policy Decision Schema",
+  "description": "Schema for policy evaluation decisions and their outcomes",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "policy_decision": {
+      "type": "object",
+      "description": "Result of policy evaluation for an action request",
+      "properties": {
+        "decision_id": {
+          "type": "string",
+          "description": "Unique decision identifier (UUID)"
+        },
+        "correlation_id": {
+          "type": "string",
+          "description": "Correlation ID linking to the originating request"
+        },
+        "allowed": {
+          "type": "boolean",
+          "description": "Whether the action is permitted"
+        },
+        "requires_elevation": {
+          "type": "boolean",
+          "description": "Whether PAM elevation is required for this action"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Explanation for the decision (allow or deny)"
+        },
+        "matched_role": {
+          "type": "string",
+          "description": "Role that provided the permission (if matched)"
+        },
+        "decision_basis": {
+          "type": "string",
+          "enum": ["rbac", "abac", "boundary_policy", "sensitive_action", "denied_by_policy"],
+          "description": "The basis for this decision"
+        },
+        "obligations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional requirements or constraints that must be satisfied"
+        },
+        "evaluated_policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "policy_id": {
+                "type": "string",
+                "description": "Policy identifier"
+              },
+              "policy_name": {
+                "type": "string",
+                "description": "Human-readable policy name"
+              },
+              "matched": {
+                "type": "boolean",
+                "description": "Whether this policy matched"
+              },
+              "result": {
+                "type": "string",
+                "enum": ["allow", "deny", "skip"],
+                "description": "Decision from this policy"
+              }
+            }
+          },
+          "description": "Policies evaluated in this decision"
+        },
+        "denial_reasons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "policy_id": {
+                "type": "string",
+                "description": "Policy that caused denial"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Specific denial reason"
+              }
+            }
+          },
+          "description": "Detailed reasons if decision was to deny"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of decision"
+        },
+        "evaluation_time_ms": {
+          "type": "number",
+          "description": "Time taken to evaluate policies (milliseconds)"
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Risk level of the evaluated action"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional decision metadata",
+          "additionalProperties": true
+        }
+      },
+      "required": ["decision_id", "correlation_id", "allowed", "reason", "timestamp"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/policy_decision"
+    }
+  ]
+}

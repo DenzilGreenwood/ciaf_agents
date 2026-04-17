@@ -38,7 +38,7 @@ from ciaf_agents.execution import ToolExecutor
 class LoadTestRunner:
     """Run comprehensive load tests"""
 
-    def __init__(self, num_interactions: int = 1_000_000, num_workers: int = 16):
+    def __init__(self, num_interactions: int = 10_000_000, num_workers: int = 16):
         self.num_interactions = num_interactions
         self.num_workers = num_workers
         self.results = {
@@ -463,7 +463,8 @@ class LoadTestRunner:
 
     def save_results(self, output_path: str):
         """Save results to JSON file"""
-        output_file = Path(output_path)
+        output_dir = Path(output_path)
+        output_file = output_dir / f"load_test_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
         with open(output_file, "w") as f:
@@ -514,8 +515,8 @@ def main():
         "--output",
         "-o",
         type=str,
-        default="load_test_results.json",
-        help="Output file for results (default: load_test_results.json)",
+        default=str(Path(__file__).parent / "results"),
+        help="Output directory for results (default: results/ in script directory)",
     )
 
     args = parser.parse_args()

@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/execution_result.schema.json",
+  "title": "CIAF Execution Result Schema",
+  "description": "Schema for results returned from action execution with evidence receipt",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "evidence_receipt": {
+      "type": "object",
+      "description": "Cryptographic receipt for recorded action",
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "description": "Unique receipt identifier (UUID)"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of action"
+        },
+        "correlation_id": {
+          "type": "string",
+          "description": "Correlation ID linking to action request"
+        },
+        "principal_id": {
+          "type": "string",
+          "description": "ID of the principal who performed action"
+        },
+        "principal_type": {
+          "type": "string",
+          "description": "Type of principal"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action performed"
+        },
+        "resource_id": {
+          "type": "string",
+          "description": "Target resource ID"
+        },
+        "resource_type": {
+          "type": "string",
+          "description": "Target resource type"
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["allow", "deny"],
+          "description": "Policy decision"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason for decision"
+        },
+        "elevation_grant_id": {
+          "type": "string",
+          "description": "Associated PAM grant ID if elevated"
+        },
+        "approved_by": {
+          "type": "string",
+          "description": "Approver if applicable"
+        },
+        "params_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "SHA-256 hash of action parameters"
+        },
+        "policy_obligations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Policy obligations that were satisfied"
+        },
+        "prior_receipt_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "Hash of previous receipt for chaining"
+        },
+        "receipt_hash": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "description": "Hash of this receipt content"
+        },
+        "signature": {
+          "type": "string",
+          "description": "Cryptographic HMAC signature"
+        }
+      },
+      "required": ["receipt_id", "timestamp", "correlation_id", "principal_id", "action", "resource_id", "decision", "receipt_hash", "signature"]
+    },
+    "execution_result": {
+      "type": "object",
+      "description": "Result from action execution with status and receipt",
+      "properties": {
+        "result_id": {
+          "type": "string",
+          "description": "Unique result identifier (UUID)"
+        },
+        "correlation_id": {
+          "type": "string",
+          "description": "Correlation ID from original request"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ok", "blocked", "error", "timeout", "pending_approval"],
+          "description": "Execution status"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action that was executed"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of execution"
+        },
+        "execution_time_ms": {
+          "type": "number",
+          "description": "Time taken to execute (milliseconds)"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason if blocked or errored"
+        },
+        "requires_elevation": {
+          "type": "boolean",
+          "description": "Whether elevation was required"
+        },
+        "result": {
+          "type": "object",
+          "description": "Result data from successful execution",
+          "additionalProperties": true
+        },
+        "error": {
+          "type": "object",
+          "description": "Error details if execution failed",
+          "properties": {
+            "error_code": {
+              "type": "string",
+              "description": "Error code"
+            },
+            "error_message": {
+              "type": "string",
+              "description": "Error message"
+            },
+            "error_details": {
+              "type": "string",
+              "description": "Detailed error information"
+            },
+            "stack_trace": {
+              "type": "string",
+              "description": "Stack trace for debugging"
+            }
+          }
+        },
+        "receipt": {
+          "$ref": "#/definitions/evidence_receipt",
+          "description": "Evidence receipt for this execution"
+        },
+        "obligations_satisfied": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Policy obligations that were satisfied"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional execution metadata",
+          "additionalProperties": true
+        }
+      },
+      "required": ["result_id", "correlation_id", "status", "action", "timestamp", "receipt"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/execution_result"
+    }
+  ]
+}

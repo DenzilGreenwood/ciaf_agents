@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/identity.schema.json",
+  "title": "CIAF Identity Schema",
+  "description": "Schema for representing principals (agents, users, services) in CIAF",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "identity": {
+      "type": "object",
+      "description": "Represents a unique digital principal",
+      "properties": {
+        "principal_id": {
+          "type": "string",
+          "description": "Unique identifier (UUID, URN, or domain-specific ID)"
+        },
+        "principal_type": {
+          "type": "string",
+          "enum": ["agent", "user", "service", "system"],
+          "description": "Type classification of the principal"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable name for the principal"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Email address if applicable"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Set of assigned role names"
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Contextual attributes",
+          "properties": {
+            "tenant_id": {
+              "type": "string",
+              "description": "Owning tenant/organization ID"
+            },
+            "department": {
+              "type": "string",
+              "description": "Department or team"
+            },
+            "manager_id": {
+              "type": "string",
+              "description": "ID of manager (for users)"
+            },
+            "cost_center": {
+              "type": "string",
+              "description": "Cost center for billing"
+            },
+            "location": {
+              "type": "string",
+              "description": "Geographic location"
+            },
+            "mfa_enabled": {
+              "type": "boolean",
+              "description": "Whether MFA is enabled for this principal"
+            },
+            "risk_score": {
+              "type": "number",
+              "description": "Risk assessment score (0-100)"
+            }
+          },
+          "additionalProperties": true
+        },
+        "agent_info": {
+          "type": "object",
+          "description": "Additional info if principal_type is 'agent'",
+          "properties": {
+            "agent_id": {
+              "type": "string",
+              "description": "Agent identifier"
+            },
+            "agent_name": {
+              "type": "string",
+              "description": "Agent name"
+            },
+            "agent_version": {
+              "type": "string",
+              "description": "Agent version"
+            },
+            "model_id": {
+              "type": "string",
+              "description": "Underlying model identifier if LLM-based"
+            },
+            "model_version": {
+              "type": "string",
+              "description": "Model version"
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of agent capabilities"
+            }
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of identity creation"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last update"
+        },
+        "last_activity": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last activity"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive", "suspended", "deleted"],
+          "description": "Current status of the principal"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional identity metadata",
+          "additionalProperties": true
+        }
+      },
+      "required": ["principal_id", "principal_type", "display_name"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/identity"
+    }
+  ]
+}

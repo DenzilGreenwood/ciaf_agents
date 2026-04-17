@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/action_request.schema.json",
+  "title": "CIAF Action Request Schema",
+  "description": "Schema for action requests submitted by agents or users to the execution boundary",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "identity": {
+      "type": "object",
+      "description": "Principal making the request (agent, user, or service)",
+      "properties": {
+        "principal_id": {
+          "type": "string",
+          "description": "Unique identifier for the principal (UUID or URN)"
+        },
+        "principal_type": {
+          "type": "string",
+          "enum": ["agent", "user", "service", "system"],
+          "description": "Type of principal"
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable name for the principal"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Assigned roles for this principal"
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Contextual attributes (tenant, department, etc.)",
+          "additionalProperties": true
+        }
+      },
+      "required": ["principal_id", "principal_type", "display_name"]
+    },
+    "resource": {
+      "type": "object",
+      "description": "Target resource for the action",
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "description": "Unique identifier for the resource"
+        },
+        "resource_type": {
+          "type": "string",
+          "description": "Type of resource (e.g., 'email', 'payment', 'record')"
+        },
+        "owner_tenant": {
+          "type": "string",
+          "description": "Tenant ID that owns this resource"
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Resource-specific attributes",
+          "additionalProperties": true
+        }
+      },
+      "required": ["resource_id", "resource_type", "owner_tenant"]
+    },
+    "action_request": {
+      "type": "object",
+      "description": "Request to perform an action on a resource",
+      "properties": {
+        "correlation_id": {
+          "type": "string",
+          "description": "Unique request correlation ID (UUID)"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action to perform (e.g., 'read_record', 'approve_payment')"
+        },
+        "resource": {
+          "$ref": "#/definitions/resource",
+          "description": "Target resource"
+        },
+        "requested_by": {
+          "$ref": "#/definitions/identity",
+          "description": "Identity making the request"
+        },
+        "justification": {
+          "type": "string",
+          "description": "Business justification for the action"
+        },
+        "params": {
+          "type": "object",
+          "description": "Action-specific parameters",
+          "additionalProperties": true
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of request creation"
+        },
+        "context": {
+          "type": "object",
+          "description": "Additional contextual information",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "Session identifier if applicable"
+            },
+            "source_ip": {
+              "type": "string",
+              "description": "Source IP address"
+            },
+            "user_agent": {
+              "type": "string",
+              "description": "User agent string"
+            },
+            "environment": {
+              "type": "string",
+              "enum": ["dev", "staging", "production"],
+              "description": "Environment where request originated"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "required": ["correlation_id", "action", "resource", "requested_by", "justification"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/action_request"
+    }
+  ]
+}

@@ -256,3 +256,23 @@ class EvidenceVault:
             List of receipt dictionaries
         """
         return [r.to_dict() for r in self.receipts]
+
+    def estimate_storage_size(self) -> int:
+        """
+        Estimate the total storage size of all receipts in bytes.
+
+        Calculates the size by serializing each receipt to JSON format,
+        which represents the actual storage footprint for persistence.
+
+        Returns:
+            Estimated total storage size in bytes
+        """
+        import json
+        
+        total_size = 0
+        for receipt in self.receipts:
+            # Serialize receipt to JSON to estimate storage size
+            receipt_json = json.dumps(receipt.to_dict(), default=str)
+            total_size += len(receipt_json.encode('utf-8'))
+        
+        return total_size

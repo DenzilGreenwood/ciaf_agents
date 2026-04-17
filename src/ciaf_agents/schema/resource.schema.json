@@ -1,0 +1,166 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/resource.schema.json",
+  "title": "CIAF Resource Schema",
+  "description": "Schema for resources that agents can act upon",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "resource": {
+      "type": "object",
+      "description": "Target resource for an action",
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "description": "Unique identifier for the resource"
+        },
+        "resource_type": {
+          "type": "string",
+          "description": "Type classification (e.g., 'email', 'payment', 'record', 'api_endpoint')"
+        },
+        "resource_name": {
+          "type": "string",
+          "description": "Human-readable name of the resource"
+        },
+        "owner_tenant": {
+          "type": "string",
+          "description": "Tenant ID that owns this resource"
+        },
+        "owner_principal": {
+          "type": "string",
+          "description": "Principal ID of the owner"
+        },
+        "classification": {
+          "type": "string",
+          "enum": ["public", "internal", "confidential", "restricted"],
+          "description": "Data classification level"
+        },
+        "sensitivity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Sensitivity level for governance"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of resource creation"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last update"
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Resource-specific attributes",
+          "additionalProperties": true
+        },
+        "access_control": {
+          "type": "object",
+          "description": "Access control settings",
+          "properties": {
+            "public": {
+              "type": "boolean",
+              "description": "Whether resource is publicly accessible"
+            },
+            "allowed_roles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Roles that can access this resource"
+            },
+            "allowed_principals": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Specific principals that can access"
+            },
+            "denied_principals": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Principals explicitly denied access"
+            },
+            "requires_mfa": {
+              "type": "boolean",
+              "description": "Whether access requires MFA"
+            },
+            "ip_whitelist": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "IP addresses/ranges allowed to access"
+            }
+          }
+        },
+        "audit_requirements": {
+          "type": "object",
+          "description": "Audit and compliance requirements",
+          "properties": {
+            "log_access": {
+              "type": "boolean",
+              "description": "Whether access should be logged",
+              "default": true
+            },
+            "retention_days": {
+              "type": "integer",
+              "description": "Days to retain access logs",
+              "minimum": 1
+            },
+            "encryption_required": {
+              "type": "boolean",
+              "description": "Whether resource must be encrypted"
+            },
+            "compliance_frameworks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Compliance frameworks (SOC2, HIPAA, PCI-DSS, etc.)"
+            }
+          }
+        },
+        "risk_assessment": {
+          "type": "object",
+          "description": "Risk assessment for this resource",
+          "properties": {
+            "risk_level": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"],
+              "description": "Risk level"
+            },
+            "last_assessed": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When risk was last assessed"
+            },
+            "assessment_details": {
+              "type": "string",
+              "description": "Details of risk assessment"
+            }
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive", "archived", "deleted"],
+          "description": "Current resource status"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional resource metadata",
+          "additionalProperties": true
+        }
+      },
+      "required": ["resource_id", "resource_type", "owner_tenant"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/resource"
+    }
+  ]
+}

@@ -1,0 +1,325 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/policy_configuration.schema.json",
+  "title": "CIAF Policy Configuration Schema",
+  "description": "Comprehensive schema for CIAF policy engine configuration combining IAM, PAM, boundary policies, and evidence requirements",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "boundary_policy": {
+      "type": "object",
+      "description": "Execution boundary enforcement policy",
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "description": "Unique policy identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Policy name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Policy description"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "type": {
+          "type": "string",
+          "enum": ["tenant_isolation", "rate_limit", "resource_allowlist", "time_based", "risk_based"],
+          "description": "Type of boundary policy"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Policy-specific rules"
+        }
+      },
+      "required": ["policy_id", "name", "type"]
+    },
+    "policy_configuration": {
+      "type": "object",
+      "description": "Complete CIAF policy configuration",
+      "properties": {
+        "config_id": {
+          "type": "string",
+          "description": "Unique configuration identifier"
+        },
+        "version": {
+          "type": "string",
+          "description": "Configuration version"
+        },
+        "organization_id": {
+          "type": "string",
+          "description": "Organization this config applies to"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When configuration was created"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        },
+        "iam_config": {
+          "type": "object",
+          "description": "IAM policy engine configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "mode": {
+              "type": "string",
+              "enum": ["rbac", "abac", "hybrid"],
+              "description": "IAM evaluation mode"
+            },
+            "roles": {
+              "type": "array",
+              "description": "Array of role definitions"
+            },
+            "default_deny": {
+              "type": "boolean",
+              "description": "Deny by default if no matching permission",
+              "default": true
+            }
+          }
+        },
+        "pam_config": {
+          "type": "object",
+          "description": "PAM elevation policy configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "sensitive_actions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Actions requiring elevation"
+            },
+            "privileged_actions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Privileged actions requiring elevation"
+            },
+            "approval_required": {
+              "type": "boolean",
+              "default": true
+            },
+            "approval_timeout_minutes": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 60
+            },
+            "auto_revoke_on_expiry": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "boundary_policies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/boundary_policy"
+          },
+          "description": "Execution boundary enforcement policies"
+        },
+        "evidence_config": {
+          "type": "object",
+          "description": "Evidence vault and audit configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "vault_backend": {
+              "type": "string",
+              "enum": ["memory", "sqlite", "postgresql", "mongodb"],
+              "description": "Evidence storage backend"
+            },
+            "vault_connection": {
+              "type": "string",
+              "description": "Connection string for vault backend"
+            },
+            "signing_secret": {
+              "type": "string",
+              "description": "Secret key for receipt signing (keep secure!)"
+            },
+            "retention_days": {
+              "type": "integer",
+              "description": "Days to retain evidence",
+              "minimum": 1,
+              "default": 90
+            },
+            "receipt_chaining": {
+              "type": "boolean",
+              "description": "Whether to chain receipts cryptographically",
+              "default": true
+            },
+            "audit_all_actions": {
+              "type": "boolean",
+              "description": "Audit all actions or only sensitive ones",
+              "default": true
+            }
+          },
+          "required": ["enabled"]
+        },
+        "logging_config": {
+          "type": "object",
+          "description": "Logging and monitoring configuration",
+          "properties": {
+            "log_level": {
+              "type": "string",
+              "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+              "default": "INFO"
+            },
+            "log_denied_actions": {
+              "type": "boolean",
+              "default": true
+            },
+            "log_elevated_actions": {
+              "type": "boolean",
+              "default": true
+            },
+            "metrics_enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "alert_thresholds": {
+              "type": "object",
+              "properties": {
+                "failed_actions_per_minute": {
+                  "type": "integer"
+                },
+                "denied_rate_percent": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "elevated_actions_per_hour": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "enforcement_config": {
+          "type": "object",
+          "description": "Policy enforcement behavior",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["report_only", "soft_enforce", "hard_enforce"],
+              "description": "Enforcement mode (report, warn, or block)",
+              "default": "hard_enforce"
+            },
+            "rate_limiting": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "global_requests_per_minute": {
+                  "type": "integer"
+                },
+                "per_principal_requests_per_minute": {
+                  "type": "integer"
+                }
+              }
+            },
+            "concurrent_limits": {
+              "type": "object",
+              "properties": {
+                "max_concurrent_per_principal": {
+                  "type": "integer",
+                  "default": 10
+                },
+                "max_concurrent_per_agent": {
+                  "type": "integer",
+                  "default": 5
+                }
+              }
+            }
+          }
+        },
+        "agent_config": {
+          "type": "object",
+          "description": "Agent-specific policy settings",
+          "properties": {
+            "allow_agent_execution": {
+              "type": "boolean",
+              "default": true
+            },
+            "agent_requires_approval": {
+              "type": "boolean",
+              "description": "Whether agent actions require human approval",
+              "default": false
+            },
+            "agent_isolation_level": {
+              "type": "string",
+              "enum": ["none", "tenant", "strict"],
+              "description": "Isolation level for agents"
+            },
+            "max_agent_grant_duration_hours": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 24
+            }
+          }
+        },
+        "compliance_config": {
+          "type": "object",
+          "description": "Compliance framework settings",
+          "properties": {
+            "frameworks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Enabled compliance frameworks (SOC2, HIPAA, PCI-DSS, etc.)"
+            },
+            "audit_required": {
+              "type": "boolean",
+              "default": true
+            },
+            "encryption_at_rest": {
+              "type": "boolean",
+              "default": true
+            },
+            "encryption_in_transit": {
+              "type": "boolean",
+              "default": true
+            },
+            "pii_protection": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional configuration metadata",
+          "additionalProperties": true
+        }
+      },
+      "required": ["config_id", "version"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/policy_configuration"
+    }
+  ]
+}

@@ -1,0 +1,211 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitiveinsight.ai/schemas/agent.schema.json",
+  "title": "CIAF Agent Schema",
+  "description": "Schema defining CIAF agents with execution boundaries, capabilities, and governance controls",
+  "version": "1.0.0",
+  "type": "object",
+  "definitions": {
+    "agent_capability": {
+      "type": "object",
+      "description": "Capability that an agent can perform",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Capability name (e.g., 'read_records', 'send_email')"
+        },
+        "action": {
+          "type": "string",
+          "description": "Corresponding action for policy evaluation"
+        },
+        "resource_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Resource types this capability applies to (e.g., ['email', 'record'])"
+        },
+        "requires_elevation": {
+          "type": "boolean",
+          "description": "Whether this capability requires PAM elevation",
+          "default": false
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the capability"
+        },
+        "parameters": {
+          "type": "object",
+          "description": "JSON Schema for capability parameters",
+          "additionalProperties": true
+        }
+      },
+      "required": ["name", "action", "resource_types"]
+    },
+    "agent_boundary": {
+      "type": "object",
+      "description": "Execution boundaries and constraints for an agent",
+      "properties": {
+        "tenant_isolation": {
+          "type": "boolean",
+          "description": "Whether agent is bound to a single tenant",
+          "default": true
+        },
+        "allowed_tenants": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tenant IDs the agent can access (if multi-tenant)"
+        },
+        "rate_limit_requests_per_min": {
+          "type": "integer",
+          "description": "Maximum requests per minute",
+          "minimum": 1
+        },
+        "rate_limit_actions_per_hour": {
+          "type": "integer",
+          "description": "Maximum actions per hour",
+          "minimum": 1
+        },
+        "max_parallel_executions": {
+          "type": "integer",
+          "description": "Maximum concurrent action executions",
+          "minimum": 1,
+          "default": 1
+        },
+        "require_human_approval": {
+          "type": "boolean",
+          "description": "Whether actions require human approval",
+          "default": false
+        },
+        "approval_timeout_seconds": {
+          "type": "integer",
+          "description": "Timeout for human approval",
+          "minimum": 1
+        },
+        "resource_allowlist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Specific resource IDs the agent can access (empty = all)"
+        },
+        "resource_denylist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Specific resource IDs the agent cannot access"
+        }
+      },
+      "required": ["tenant_isolation"]
+    },
+    "agent_definition": {
+      "type": "object",
+      "description": "Complete agent definition with identity, capabilities, and boundaries",
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "description": "Unique agent identifier (UUID)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable agent name"
+        },
+        "version": {
+          "type": "string",
+          "description": "Agent version (semver)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Agent description and purpose"
+        },
+        "agent_type": {
+          "type": "string",
+          "enum": ["autonomous", "human_supervised", "human_triggered", "task_specific"],
+          "description": "Classification of agent autonomy level"
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owner/team responsible for this agent"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of agent creation"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last update"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "paused", "retired", "disabled"],
+          "description": "Current agent operational status"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IAM roles assigned to this agent"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/agent_capability"
+          },
+          "description": "List of capabilities the agent can perform"
+        },
+        "boundaries": {
+          "$ref": "#/definitions/agent_boundary",
+          "description": "Execution boundaries and constraints"
+        },
+        "audit_required": {
+          "type": "boolean",
+          "description": "Whether all agent actions require audit trail",
+          "default": true
+        },
+        "evidence_retention_days": {
+          "type": "integer",
+          "description": "Days to retain evidence receipts for this agent",
+          "minimum": 1
+        },
+        "sensitive_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Actions that are considered sensitive and require elevation"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional agent metadata",
+          "additionalProperties": true
+        }
+      },
+      "required": ["agent_id", "name", "agent_type", "status", "boundaries", "capabilities"]
+    }
+  },
+  "properties": {
+    "agents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/agent_definition"
+      },
+      "description": "List of agent definitions"
+    },
+    "version": {
+      "type": "string",
+      "description": "Schema version"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this agent configuration was generated"
+    }
+  },
+  "required": ["agents"]
+}
